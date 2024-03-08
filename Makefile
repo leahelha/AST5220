@@ -24,12 +24,12 @@ OPTIONS += -D_SPLINE_WARNINGS_ON
 # OPTIONS = -D_FIDUCIAL_VERBOSE_ODE_SOLVER_TRUE
 
 # Add OpenMP parallelization
-OPTIONS += -D_USEOPEMP #*** 
-CC += -fopenmp			#*** 
+#OPTIONS += -D_USEOPEMP #*** 
+#CC += -fopenmp			#*** 
 
 #=======================================================
 
-C = -O8 -g $(OPTIONS) #***03-->08 
+C = -O3 -g $(OPTIONS) #***03-->08 
 
 #=======================================================
 

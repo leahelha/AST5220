@@ -360,7 +360,7 @@ void BackgroundCosmology::info() const{
   std::cout << "OmegaK:      " << OmegaK      << "\n";
   std::cout << "OmegaNu:     " << OmegaNu     << "\n";
   std::cout << "OmegaR:      " << OmegaR      << "\n";
-  //std::cout << "OmegaSum:    " << OmegaB+OmegaCDM+OmegaLambda+OmegaK+OmegaR<< "\n";
+  std::cout << "OmegaSum:    " << OmegaB+OmegaCDM+OmegaLambda+OmegaK+OmegaR<< "\n"; //***
   std::cout << "Neff:        " << Neff        << "\n";
   std::cout << "h:           " << h           << "\n";
   std::cout << "TCMB:        " << TCMB        << "\n";
@@ -372,8 +372,8 @@ void BackgroundCosmology::info() const{
 // Output some data to file
 //====================================================
 void BackgroundCosmology::output(const std::string filename) const{
-  const double x_min = -10.0; //original -10.0 //*** @@@  changed
-  const double x_max =  0.0;  //original 0.0 //*** @@@
+  const double x_min = Constants.x_start; //original -10.0 //*** @@@  changed
+  const double x_max =  Constants.x_end;  //original 0.0 //*** @@@
   const int    n_pts =  100;  //original 100  //*** @@@
   
   Vector x_array = Utils::linspace(x_min, x_max, n_pts);
@@ -390,7 +390,7 @@ void BackgroundCosmology::output(const std::string filename) const{
     fp << get_OmegaR(x)      << " ";
     fp << get_OmegaNu(x)     << " ";
     fp << get_OmegaK(x)      << " ";
-    //fp << ddHpddx_of_x(x)        << " ";
+    fp << ddHpddx_of_x(x)        << " "; //***
     fp <<"\n";
   };
   std::for_each(x_array.begin(), x_array.end(), print_data);
