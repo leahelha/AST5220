@@ -1,9 +1,33 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+
+
+
+
 """ SUPERNOVA FITTING"""
 data = np.loadtxt("results_supernovafitting.txt")
 
 converged_data = data[200:]
-
+print(f"The shape of the converged data is {np.shape(converged_data)}\n")
 best_chi = np.argmin(converged_data[:, 0])
+
+best_fit_params = converged_data[best_chi, :]
+print(f"Best params from min chi^2 {best_fit_params}\n")
+
+
+selected_data = converged_data[converged_data[:, 0] < best_fit_params[0] + 3.53] #Data selected within 1sigma of the best fit
+
+
+OmegaM_selected = selected_data[:, 2]
+OmegaK_selected = selected_data[:, 3]
+OmegaLambda_selected = 1 - (OmegaK_selected + OmegaM_selected)
+
+plt.scatter(OmegaM_selected, OmegaLambda_selected)
+plt.xlabel('OmegaM')
+plt.ylabel('OmegaLambda')
+plt.title('1$\sigma$ Confidence Region')
+plt.show()
 
 
 std_OmegaM = np.std(OmegaM_selected)

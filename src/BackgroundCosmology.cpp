@@ -124,9 +124,10 @@ void BackgroundCosmology::solve(){
     t[i] = solution_time[i][0];
   }
 
-  //std::cout << "cosmic time = " << solution_time.back()[0] / (60.*60.*24*365*1e9) << " Gyr";
-
   t_of_x_spline.create(x_array, t, "t_of_x");
+  std::cout << "cosmic time = " << solution_time.back()[0] / (60.*60.*24*365*1e9) << " Gyr";
+
+  
 
 
 }
@@ -331,6 +332,11 @@ double BackgroundCosmology::eta_of_x(double x) const{
   return eta_of_x_spline(x);
 }
 
+//*** I added this
+double BackgroundCosmology::t_of_x(double x) const{
+  return t_of_x_spline(x);
+}
+
 double BackgroundCosmology::get_H0() const{ 
   return H0; 
 }
@@ -391,6 +397,7 @@ void BackgroundCosmology::output(const std::string filename) const{
     fp << get_OmegaNu(x)     << " ";
     fp << get_OmegaK(x)      << " ";
     fp << ddHpddx_of_x(x)        << " "; //***
+    fp << t_of_x(x)        << " "; //***
     fp <<"\n";
   };
   std::for_each(x_array.begin(), x_array.end(), print_data);

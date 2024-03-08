@@ -28,9 +28,9 @@ class BackgroundCosmology{
     double x_end   = Constants.x_end;
 
     // Splines to be made
-    Spline eta_of_x_spline{"eta"};
     Spline t_of_x_spline{"t"};  // *** I added this
- 
+    Spline eta_of_x_spline{"eta"};
+    
   public:
 
     // Constructors 
@@ -55,6 +55,7 @@ class BackgroundCosmology{
 
     // Get functions that we must implement
     double eta_of_x(double x) const;
+    double t_of_x(double x) const; //*** I added this
     double H_of_x(double x) const;
     double Hp_of_x(double x) const;
     double dHpdx_of_x(double x) const;
