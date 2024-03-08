@@ -239,9 +239,6 @@ double BackgroundCosmology::get_OmegaCDM(double x) const{
 double BackgroundCosmology::get_OmegaLambda(double x) const{ 
   if(x == 0.0) return OmegaLambda;
 
-  //=============================================================================
-  // TODO: Implement...
-  //=============================================================================
   double Hx_over_H0 = H_of_x(x)/get_H0();
   double f_Hx_H0 = 1.0 / ((pow(Hx_over_H0, 2)));  // function of H(x) and H0 in the expression for OmegaLambda
   
@@ -250,10 +247,6 @@ double BackgroundCosmology::get_OmegaLambda(double x) const{
 
 double BackgroundCosmology::get_OmegaK(double x) const{ 
   if(x == 0.0) return OmegaK;
-
-  //=============================================================================
-  // TODO: Implement...
-  //=============================================================================
 
   double Hx_over_H0 = H_of_x(x)/get_H0();
   double f_Hx_H0 = 1.0 / (exp(2.0*x)*(pow(Hx_over_H0, 2)));  // function of H(x) and H0 in the expression for OmegaK
@@ -315,11 +308,7 @@ double BackgroundCosmology::get_luminosity_distance_of_x(double x) const{
 }
 
 double BackgroundCosmology::get_comoving_distance_of_x(double x) const{
-  //=============================================================================
-  // TODO: Implement...
-  //=============================================================================
 
-  
   double eta_0 = eta_of_x(0.0);
   double eta_ = eta_of_x(x);
 

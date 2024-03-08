@@ -26,6 +26,8 @@ from astropy import constants as const
 }
 
 """
+Gyr = 1/(60*60*24*365*1e9) # from s to Gyr
+Mpc = 3.24*10**(-24) # from cm to Mpc
 cosmo = np.loadtxt("cosmology.txt")
 print(f"Shape of cosmo = {np.shape(cosmo)}")
 
@@ -33,7 +35,6 @@ print(f"Shape of cosmo = {np.shape(cosmo)}")
 cosmo_x = cosmo[:,0]
 cosmo_eta_of_x = cosmo[:,1]
 cosmo_t_of_x = cosmo[:, 11]
-
 
 cosmo_Hp = cosmo[:,2]
 cosmo_dHpdx = cosmo[:,3]
@@ -56,6 +57,7 @@ border_idx2 = np.where((np.abs((cosmo_OmegaB+cosmo_OmegaCDM)-cosmo_OmegaLambda))
 idx1 = border_idx1[0]
 idx2 = border_idx2[-1]
 
+plt.figure()
 # Patches for filling between lines
 region1 = patches.Rectangle((cosmo_x[0], 0), cosmo_x[idx1]-cosmo_x[0], 1, color='red', alpha=0.2)
 region2 = patches.Rectangle((cosmo_x[idx1], 0), cosmo_x[idx2] - cosmo_x[idx1], 1, color='blue', alpha=0.2)
@@ -68,6 +70,7 @@ plt.gca().add_patch(region3)
 
 
 """ Plot of Omegas """
+
 plt.plot(cosmo_x, cosmo_OmegaR+cosmo_OmegaNu,  'red', label=r"$\Omega_{Relativistic} = \Omega_{\gamma} + \Omega_{\nu}$")
 plt.plot(cosmo_x, cosmo_OmegaB+cosmo_OmegaCDM, 'blue', label=r"$\Omega_{Matter} = \Omega_{b} + \Omega_{CDM}$")
 plt.plot(cosmo_x, cosmo_OmegaLambda, 'purple', label="$\Omega_{\Lambda}$")
@@ -80,7 +83,9 @@ plt.xlabel("x")
 plt.legend()
 plt.savefig("Figs/Omegas.pdf")
 
-""" 3 Hprime Plots that demonstrate that code works properly: """
+
+
+""" Hprime *its derivatives plots """
 
 plt.figure()
 ### 1/H * dHdx
@@ -104,22 +109,53 @@ plt.xlabel("x")
 plt.savefig("Figs/Hp_checks.pdf")
 #plt.show()
 
+""" Plot of Hprime(x)*eta(x)/c """
 plt.figure()
-plt.plot(cosmo_x, cosmo_eta_of_x*cosmo_Hp/const.c, label=r'$\frac{\eta(x)\mathcal{H}(x)}{c}$')
+
+region1 = patches.Rectangle((cosmo_x[0], 0), cosmo_x[idx1]-cosmo_x[0], 3.5, color='red', alpha=0.2)
+region2 = patches.Rectangle((cosmo_x[idx1], 0), cosmo_x[idx2] - cosmo_x[idx1], 3.5, color='blue', alpha=0.2)
+region3 = patches.Rectangle((cosmo_x[idx2], 0), cosmo_x[-1] - cosmo_x[idx2], 3.5, color='purple', alpha=0.2)
+
+# Add the patches to the plot
+plt.gca().add_patch(region1)
+plt.gca().add_patch(region2)
+plt.gca().add_patch(region3)
+
+#print(cosmo_x[-23])  # when x = 0
+plt.plot(cosmo_x[:-22], cosmo_eta_of_x[:-22]*cosmo_Hp[:-22]/const.c, label=r'$\frac{\eta(x)\mathcal{H}(x)}{c}$')
 plt.legend()
+#plt.xlim(np.log(1/1+1089), 0)
 plt.xlabel("x")
-#plt.savefig("Figs/Hp_eta_checks.pdf")
+plt.savefig("Figs/Hp_eta_checks.pdf")
 
 
-
-# Cosmic time 
+""" Plot of cosmic time and conformal time """
 plt.figure()
-plt.plot(cosmo_x, cosmo_t_of_x)
-plt.plt(cosmo_x, cosmo_eta_of_x/const.c)
-plt.xlabel("t")
-plt.ylabel("$\eta (x)/c$")
-plt.show()
+plt.plot(cosmo_x[1:], cosmo_t_of_x[1:]*Gyr, label="t") #Had to skip first index, bc it was acting up
+plt.plot(cosmo_x[1:], cosmo_eta_of_x[1:]*Gyr/const.c, label="$\eta(x)/c$")
+plt.axhline(y=13.8, color='black', linestyle='--', label='13.8 Gyr', alpha=0.3)
 
+plt.yscale('log')
+#plt.xlim(np.log(1/1+1089), 0)
+plt.xlabel("x")
+plt.ylabel("Gyr")
+plt.legend()
+plt.savefig("Figs/cosmic_time_and_conformal_time.pdf")
+
+
+""" Hubble factor Hprime(x) """
+print(f"Hubble factor {cosmo_Hp[-23]*(100/(Mpc*1000))}")
+
+plt.figure()
+plt.plot(cosmo_x, cosmo_Hp*(100/(Mpc*1000)))
+
+plt.yscale('log')
+plt.xlim(-12, 0.1)
+plt.title("$\mathcal{H}(x)$")
+plt.xlabel("x")
+plt.ylabel("Mpc")
+plt.savefig("Figs/Hubble_factor.pdf")
+#plt.show()
 
 
 
