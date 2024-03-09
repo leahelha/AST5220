@@ -29,6 +29,7 @@ from astropy import constants as const
 """
 Gyr = 1/(60*60*24*365*1e9) # from s to Gyr
 Mpc = 3.24*10**(-23) # from m to Mpc
+Gpc = 3.24*10**(-25)
 cosmo = np.loadtxt("cosmology.txt")
 print(f"Shape of cosmo = {np.shape(cosmo)}")
 
@@ -48,8 +49,9 @@ cosmo_OmegaR = cosmo[:,7]
 cosmo_OmegaNu = cosmo[:,8]
 cosmo_OmegaK = cosmo[:,9]
 
-
 cosmo_dL = cosmo[:, 12]
+
+
 
 
 

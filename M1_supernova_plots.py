@@ -2,27 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from astropy import constants as const
-
-def dL(chi2, OmegaK, x):
-    A_sin = np.sin(np.sqrt(np.abs(OmegaK)) * const.Hubble * np.sqrt(chi2) / const.c)
-    A_sinh = np.sinh(np.sqrt(np.abs(OmegaK)) * const.Hubble * np.sqrt(chi2) / const.c)
-    B = np.sqrt(np.abs(OmegaK)) * const.H0 * np.sqrt(chi2) / const.c
-
-
-    if OmegaK == 0:
-        r = np.sqrt(chi2)
-    elif get_OmegaK(x) < 0:
-        r = np.sqrt(chi2) * A_sin / B
-    elif get_OmegaK(x) > 0:
-        r = np.sqrt(chi2) * A_sinh / B
-
-    dL = r / (np.exp(x))
-
-
-    return dL
+from scipy.stats import norm
 
 Gyr = 1/(60*60*24*365*1e9) # from s to Gyr
 Mpc = 3.24*10**(-23) # from m to Mpc
+Gpc = 3.24*10**(-25)
+
 cosmo = np.loadtxt("cosmology.txt")
 print(f"Shape of cosmo = {np.shape(cosmo)}")
 
@@ -56,11 +41,15 @@ best_fit_params = converged_data[best_chi, :]
 print(f"Best params from min chi^2 {best_fit_params}\n")
 
 
-selected_data = converged_data[converged_data[:, 0] < best_fit_params[0] + 3.53] #Data selected within 1sigma of the best fit
+selected_data = converged_data[converged_data[:, 0] < (best_fit_params[0] + 3.53)] #Data selected within 1sigma of the best fit
+sig2_data = converged_data[converged_data[:, 0] < (best_fit_params[0] + 0.267)] #Data selected within 2sigma of the best fit
+sig3_data = converged_data[converged_data[:, 0] < (best_fit_params[0] + 0.133)] #Data selected within 3sigma of the best fit
 
 chi2 = selected_data[:, 0]
+h_selected = selected_data[:, 1]
 OmegaM_selected = selected_data[:, 2]
 OmegaK_selected = selected_data[:, 3]
+
 OmegaLambda_selected = 1 - (OmegaK_selected + OmegaM_selected)
 
 
@@ -69,72 +58,87 @@ OmegaLambda_selected = 1 - (OmegaK_selected + OmegaM_selected)
 betoule = np.loadtxt("Betoule_supernova.txt")
 
 
-z_cosmo = np.exp(cosmo_x)-1
+z_cosmo = np.exp(-cosmo_x)-1
 z_obs = betoule[:, 0]
 
 
 dL_obs = betoule[:, 1]
 error_obs = betoule[:, 2]
 
-dL_fit = dL(chi2, OmegaK_selected, cosmo_x)
+""" Plot of luminosity distance for fiducial cosmology, observed sn data and our best fit results """
+# *** THIS IS NOT RIGHT
+plt.figure()
+plt.plot(z_cosmo, cosmo_dL*Gpc/z_cosmo, label="Fiducial cosmology")
+plt.errorbar(z_obs, dL_obs, xerr=error_obs, fmt='o', color='blue', ecolor='red', capsize=0.5, label="Observed data")
+plt.plot(chi2*Gpc, label="Best fit from MCMC")
+plt.title("This is not correct")
+plt.legend()
+plt.savefig("Figs/sn_dL_plots.pdf")
 
-plt.plot(z_cosmo, cosmo_dL/z_cosmo, label="Fiducial cosmology")
-plt.errorbar(z_obs, dL_obs, yerr=error_obs, fmt='o', color='blue', ecolor='red', capsize=0.5, label="Observed data")
-plt.plot(z_cosmo, dL_fit, label="Best fit from MCMC")
-plt.show()
 
-
-"""
-plt.scatter(OmegaM_selected, OmegaLambda_selected)
+""" Confidence region 1sig, 2sig and 3sig """
+plt.figure()
+plt.scatter( OmegaLambda_selected, OmegaM_selected, label = "$1\sigma$")
+plt.scatter(1 -(sig2_data[:,2]+sig2_data[:,3]), sig2_data[:,2], label = "$2\sigma$")
+plt.scatter(1 -(sig3_data[:,2]+sig3_data[:,3]), sig3_data[:,2], label = "$3\sigma$")
+# *** wanna add line for flat universe
+plt.legend()
 plt.xlabel('OmegaM')
 plt.ylabel('OmegaLambda')
 plt.title('1$\sigma$ Confidence Region')
-plt.show()
+plt.savefig("Figs/sn_Confidence_region.pdf")
 
 
 std_OmegaM = np.std(OmegaM_selected)
 std_OmegaLambda = np.std(OmegaLambda_selected)
+std_OmegaK= np.std(OmegaK_selected)
+std_h= np.std(h_selected)
 print("Standard deviation of OmegaM:", std_OmegaM)
 print("Standard deviation of OmegaLambda:", std_OmegaLambda)
 
-plt.hist(OmegaM_selected, bins=20, alpha=0.5, label='OmegaM')
-plt.hist(OmegaLambda_selected, bins=20, alpha=0.5, label='OmegaLambda')
+
+""" Histogram of accepted H """
+# *** FIX UNITS AND AXIS LABEL
+plt.figure()
+plt.hist(h_selected, bins=20, alpha=0.5, label='h')  #*** supposed to be H
 plt.xlabel('Parameter Value')
 plt.ylabel('Frequency')
 plt.legend()
-plt.title('Histogram of Parameters')
-plt.show()
+plt.title('Histogram of accepted h')
+plt.savefig("Figs/sn_Histogram_of_H_parameters.pdf")
 
 
 # Compute the mean and standard deviation of the chain values
 mean_OmegaM = np.mean(OmegaM_selected)
 mean_OmegaLambda = np.mean(OmegaLambda_selected)
+mean_OmegaK= np.mean(OmegaK_selected)
 
-# Compute the standard deviation
-std_OmegaM = np.std(OmegaM_selected)
-std_OmegaLambda = np.std(OmegaLambda_selected)
+mean_Omega_sum = mean_OmegaK + mean_OmegaLambda + mean_OmegaM
 
-# Generate values for the Gaussian distribution
-x = np.linspace(min(OmegaM_selected), max(OmegaM_selected), 100)
-gaussian_OmegaM = 1 / (std_OmegaM * np.sqrt(2 * np.pi)) * np.exp(-0.5 * ((x - mean_OmegaM) / std_OmegaM)**2)
+Omega_sum = OmegaK_selected + OmegaLambda_selected + OmegaM_selected
+#mean_h= np.mean(h_selected)
 
-y = np.linspace(min(OmegaLambda_selected), max(OmegaLambda_selected), 100)
-gaussian_OmegaLambda = 1 / (std_OmegaLambda * np.sqrt(2 * np.pi)) * np.exp(-0.5 * ((y - mean_OmegaLambda) / std_OmegaLambda)**2)
+std_Omega_sum = std_OmegaK + std_OmegaLambda + std_OmegaM # *** Check if the math is on my side here
+pdf = norm.pdf(cosmo_x, loc=mean_Omega_sum, scale=std_Omega_sum)
 
-# Plot the histogram and Gaussian distribution
+
+""" Plot the histogram and Gaussian distribution """
+# *** THIS IS ALSO WRONG
+# *** FIX UNITS AND AXIS LABEL
+plt.figure()
 plt.hist(OmegaM_selected, bins=20, alpha=0.5, label='OmegaM')
-plt.plot(x, gaussian_OmegaM, color='blue', linestyle='--', label='Gaussian fit (OmegaM)')
-
 plt.hist(OmegaLambda_selected, bins=20, alpha=0.5, label='OmegaLambda')
-plt.plot(y, gaussian_OmegaLambda, color='orange', linestyle='--', label='Gaussian fit (OmegaLambda)')
+plt.hist(OmegaK_selected, bins=20, alpha=0.5, label='OmegaK')
+plt.hist(OmegaM_selected+OmegaLambda_selected+OmegaK_selected, bins=20, alpha=0.5, label='$\Omega_i$')
+plt.plot(cosmo_x, pdf)
 
 plt.xlabel('Parameter Value')
 plt.ylabel('Frequency')
 plt.legend()
 plt.title('Histogram of Parameters with Gaussian Fit')
-plt.show()
+plt.savefig("Figs/sn_Histogram_of_omega_Gaussian.pdf")
 
-""" 
+
 
 
 #           chi2             h      OmegaM    OmegaK    Acceptrate
