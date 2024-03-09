@@ -8,7 +8,7 @@ from astropy import constants as const
 
   std::ofstream fp(filename.c_str());
   auto print_data = [&] (const double x) {
-    fp << x                  << " ";
+   fp << x                  << " ";
     fp << eta_of_x(x)        << " ";
     fp << Hp_of_x(x)         << " ";
     fp << dHpdx_of_x(x)      << " ";
@@ -20,6 +20,7 @@ from astropy import constants as const
     fp << get_OmegaK(x)      << " ";
     fp << ddHpddx_of_x(x)        << " "; //***
     fp << t_of_x(x)        << " "; //***
+    fp << get_luminosity_distance_of_x() << " ";
     fp <<"\n";
   };
   std::for_each(x_array.begin(), x_array.end(), print_data);
@@ -27,7 +28,7 @@ from astropy import constants as const
 
 """
 Gyr = 1/(60*60*24*365*1e9) # from s to Gyr
-Mpc = 3.24*10**(-24) # from cm to Mpc
+Mpc = 3.24*10**(-23) # from m to Mpc
 cosmo = np.loadtxt("cosmology.txt")
 print(f"Shape of cosmo = {np.shape(cosmo)}")
 
@@ -46,6 +47,9 @@ cosmo_OmegaLambda = cosmo[:,6]
 cosmo_OmegaR = cosmo[:,7]
 cosmo_OmegaNu = cosmo[:,8]
 cosmo_OmegaK = cosmo[:,9]
+
+
+cosmo_dL = cosmo[:, 12]
 
 
 
@@ -144,18 +148,19 @@ plt.savefig("Figs/cosmic_time_and_conformal_time.pdf")
 
 
 """ Hubble factor Hprime(x) """
+
 print(f"Hubble factor {cosmo_Hp[-23]*(100/(Mpc*1000))}")
 
 plt.figure()
 plt.plot(cosmo_x, cosmo_Hp*(100/(Mpc*1000)))
 
 plt.yscale('log')
-plt.xlim(-12, 0.1)
+#plt.xlim(-12, 0.1)
 plt.title("$\mathcal{H}(x)$")
 plt.xlabel("x")
-plt.ylabel("Mpc")
+plt.ylabel("100 km/s / Mpc")
 plt.savefig("Figs/Hubble_factor.pdf")
-#plt.show()
+plt.show()
 
 
 

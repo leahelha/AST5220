@@ -22,10 +22,7 @@ BackgroundCosmology::BackgroundCosmology(
 
   double pi = M_PI;
   
-  
-  //=============================================================================
-  // TODO: Compute OmegaR, OmegaNu, OmegaLambda, H0, ...
-  //=============================================================================
+
 
   H0 = Constants.H0_over_h * h;
   OmegaR = 2*pow(pi,2)/30 * pow((Constants.k_b* TCMB), 4)/(pow(Constants.hbar,3)*pow(Constants.c, 5))*(8*pi*Constants.G)/(3*pow(H0,2));
@@ -58,9 +55,6 @@ void BackgroundCosmology::solve(){
   // The ODE for deta/dx
   ODEFunction detadx = [&](double x, const double *eta, double *detadx){
 
-    //=============================================================================
-    // TODO: Set the rhs of the detadx ODE
-    //=============================================================================
     detadx[0] = Constants.c * (1.0/Hp_of_x(x)); 
 
     return GSL_SUCCESS;
@@ -387,6 +381,7 @@ void BackgroundCosmology::output(const std::string filename) const{
     fp << get_OmegaK(x)      << " ";
     fp << ddHpddx_of_x(x)        << " "; //***
     fp << t_of_x(x)        << " "; //***
+    fp << get_luminosity_distance_of_x(x) << " ";
     fp <<"\n";
   };
   std::for_each(x_array.begin(), x_array.end(), print_data);
