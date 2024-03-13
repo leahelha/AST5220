@@ -34,9 +34,9 @@ void RecombinationHistory::solve_number_density_electrons(){
   //=============================================================================
   // TODO: Set up x-array and make arrays to store X_e(x) and n_e(x) on
   //=============================================================================
-  Vector x_array;
-  Vector Xe_arr;
-  Vector ne_arr;
+  Vector x_array = Utils::linspace(x_start, x_end, Constants.npts);
+  Vector Xe_arr = (npts_rec_arrays);
+  Vector ne_arr = (npts_rec_arrays);
 
   // Calculate recombination history
   bool saha_regime = true;
@@ -116,9 +116,13 @@ std::pair<double,double> RecombinationHistory::electron_fraction_from_saha_equat
   const double H0_over_h   = Constants.H0_over_h;
 
   // Fetch cosmological parameters
-  //const double OmegaB      = cosmo->get_OmegaB();
-  //...
-  //...
+  const double OmegaB      = cosmo->get_OmegaB();
+  const double h           = cosmo->get_h();
+  const double OmegaCDM    = cosmo->get_OmegaCDM(); 
+  const double OmegaK      = cosmo->get_OmegaK();
+  const double Neff        = cosmo->get_Neff(); 
+  const double TCMB        = cosmo->get_TCMB();
+
 
   // Electron fraction and number density
   double Xe = 0.0;
