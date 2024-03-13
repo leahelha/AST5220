@@ -280,18 +280,17 @@ double RecombinationHistory::Xe_of_x(double x) const{
   //...
   //...
 
-  return 0.0;
+  double Xe_f_x = 
+
+  return Xe_f_x;
 }
 
 double RecombinationHistory::ne_of_x(double x) const{
 
-  //=============================================================================
-  // TODO: Implement
-  //=============================================================================
-  //...
-  //...
+ 
+  double ne_of_x = get_Xe_of_x(x)*(OmegaB*3*pow(H0, 2))/(Constants.m_H * pow(exp(x), 3) * 8 * Constants.pi * Constants.G)
 
-  return 0.0;
+  return ne_of_x;
 }
 
 double RecombinationHistory::get_Yp() const{

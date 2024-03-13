@@ -53,6 +53,7 @@ extern struct ConstantsAndUnits {
 
   // @@@ Adding npts, for x-arrays
   const double npts = 1e4;
+  const double pi = M_PI;
 
 
   // Include polarization and/or neutrinos?

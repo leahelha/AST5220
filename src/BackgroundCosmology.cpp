@@ -33,21 +33,15 @@ BackgroundCosmology::BackgroundCosmology(
 
 }
 
-//====================================================
-// Do all the solving. Compute eta(x)
-//====================================================
 
 // Solve the background
 void BackgroundCosmology::solve(){
   Utils::StartTiming("Eta");
     
-  //=============================================================================
-  // TODO: Set the range of x and the number of points for the splines
-  // For this Utils::linspace(x_start, x_end, npts) is useful
-  //=============================================================================
+
   double x_start = Constants.x_start;
   double x_end = Constants.x_end;
-  double npts = 1e4;
+  double npts = Constants.npts ;//1e4;
 
 
   Vector x_array = Utils::linspace(x_start, x_end, npts);
@@ -60,10 +54,6 @@ void BackgroundCosmology::solve(){
     return GSL_SUCCESS;
   };
 
-  //=============================================================================
-  // TODO: Set the initial condition, set up the ODE system, solve and make
-  // the spline eta_of_x_spline 
-  //=============================================================================
 
 
 
@@ -97,9 +87,6 @@ void BackgroundCosmology::solve(){
   // The ODE for deta/dx
   ODEFunction dtdx = [&](double x, const double *t, double *dtdx){
 
-    //=============================================================================
-    // TODO: Set the rhs of the detadx ODE
-    //=============================================================================
     dtdx[0] = 1.0/H_of_x(x);
 
     return GSL_SUCCESS;
@@ -126,16 +113,9 @@ void BackgroundCosmology::solve(){
 
 }
 
-//====================================================
-// Get methods
-//====================================================
+
 
 double BackgroundCosmology::H_of_x(double x) const{
-
-  //=============================================================================
-  // TODO: Implement...
-  //=============================================================================
-
   
   double H_of_x = get_H0()*sqrt((OmegaB+OmegaCDM)*exp(-3*x)+ (OmegaR + OmegaNu)*exp(-4*x)+OmegaK*exp(-2*x)+OmegaLambda);
 
@@ -143,10 +123,6 @@ double BackgroundCosmology::H_of_x(double x) const{
 }
 
 double BackgroundCosmology::Hp_of_x(double x) const{
-
-  //=============================================================================
-  // TODO: Implement...
-  //=============================================================================
 
   // x = ln a -> a = e^x
   double Hp_of_x = exp(x) * H_of_x(x); 
@@ -156,9 +132,6 @@ double BackgroundCosmology::Hp_of_x(double x) const{
 
 double BackgroundCosmology::dHpdx_of_x(double x) const{
 
-  //=============================================================================
-  // TODO: Implement...
-  //=============================================================================
   double dHdx = -(H0*exp(-4.0*x)*(2.0*OmegaK*exp(2.0*x)+(3.0*OmegaCDM+3.0*OmegaB)*exp(x)+4.0*OmegaR+4.0*OmegaNu))/(2.0*sqrt(OmegaK*exp(-2.0*x)+(OmegaCDM+OmegaB)*exp(-3.0*x)+(OmegaR+OmegaNu)*exp(-4.0*x)+OmegaLambda));
   double dHpdx_of_x = exp(x) * H_of_x(x) + exp(x) * dHdx; 
 
@@ -168,9 +141,6 @@ double BackgroundCosmology::dHpdx_of_x(double x) const{
 
 double BackgroundCosmology::ddHpddx_of_x(double x) const{
 
-  //=============================================================================
-  // TODO: Implement...
-  //=============================================================================
   double dHdx = -(H0*exp(-4.0*x)*(2.0*OmegaK*exp(2.0*x)+(3.0*OmegaCDM+3.0*OmegaB)*exp(x)+4.0*OmegaR+4.0*OmegaNu))/(2.0*sqrt(OmegaK*exp(-2.0*x)+(OmegaCDM+OmegaB)*exp(-3.0*x)+(OmegaR+OmegaNu)*exp(-4.0*x)+OmegaLambda));
   double ddHddx = (H0*exp(-8.0*x)*(8.0*OmegaK*OmegaLambda*exp(6.0*x)+(18.0*OmegaCDM+18.0*OmegaB)*OmegaLambda*exp(5.0*x)+(32.0*OmegaLambda*OmegaR+32.0*OmegaLambda*OmegaNu+4.0*pow(OmegaK,2.0))*exp(4.0*x)+(14.0*OmegaCDM+14.0*OmegaB)*OmegaK*exp(3.0*x)+(24.0*OmegaK*OmegaR+24.0*OmegaK*OmegaNu+9.0*pow(OmegaCDM,2)+18.0*OmegaB*OmegaCDM+9.0*pow(OmegaB,2))*exp(2.0*x)+((26.0*OmegaCDM+26.0*OmegaB)*OmegaR+(26.0*OmegaCDM+26.0*OmegaB)*OmegaNu)*exp(x)+16.0*pow(OmegaR,2)+32.0*OmegaNu*OmegaR+16.0*pow(OmegaNu,2)))/(4.0*pow((OmegaK*exp(-2.0*x)+(OmegaCDM+OmegaB)*exp(-3.0*x)+(OmegaR+OmegaNu)*exp(-4.0*x)+OmegaLambda),(3.0/2.0)));
 
@@ -183,9 +153,6 @@ double BackgroundCosmology::ddHpddx_of_x(double x) const{
 double BackgroundCosmology::get_OmegaB(double x) const{ 
   if(x == 0.0) return OmegaB;
 
-  //=============================================================================
-  // TODO: Implement...
-  //=============================================================================
   double Hx_over_H0 = H_of_x(x)/get_H0();
   double f_Hx_H0 = 1.0 / (exp(3.0*x)*(pow(Hx_over_H0, 2)));  // function of H(x) and H0 in the expression for OmegaB
   
@@ -196,9 +163,6 @@ double BackgroundCosmology::get_OmegaB(double x) const{
 double BackgroundCosmology::get_OmegaR(double x) const{ 
   if(x == 0.0) return OmegaR;
 
-  //=============================================================================
-  // TODO: Implement...
-  //=============================================================================
   double Hx_over_H0 = H_of_x(x)/get_H0();
   double f_Hx_H0 = 1.0 / (exp(4.0*x)*(pow(Hx_over_H0, 2)));  // function of H(x) and H0 in the expression for OmegaR
   
@@ -208,9 +172,6 @@ double BackgroundCosmology::get_OmegaR(double x) const{
 double BackgroundCosmology::get_OmegaNu(double x) const{ 
   if(x == 0.0) return OmegaNu;
 
-  //=============================================================================
-  // TODO: Implement...
-  //=============================================================================
   double Hx_over_H0 = H_of_x(x)/get_H0();
   double f_Hx_H0 = 1.0 / (exp(4.0*x)*(pow(Hx_over_H0, 2)));  // function of H(x) and H0 in the expression for OmegaNu
   
@@ -220,9 +181,6 @@ double BackgroundCosmology::get_OmegaNu(double x) const{
 double BackgroundCosmology::get_OmegaCDM(double x) const{ 
   if(x == 0.0) return OmegaCDM;
 
-  //=============================================================================
-  // TODO: Implement...
-  //=============================================================================
 
   double Hx_over_H0 = H_of_x(x)/get_H0();
   double f_Hx_H0 = 1.0 / (exp(3.0*x)*(pow(Hx_over_H0, 2)));  // function of H(x) and H0 in the expression for OmegaCDM
