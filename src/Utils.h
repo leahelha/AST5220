@@ -48,7 +48,7 @@ extern struct ConstantsAndUnits {
   const double k_max = 0.3     / Mpc;
   
   // Min and max x-value
-  const double x_start = log(1e-8); //log(1e-8);  //*** @@@  changed  -21.0
+  const double x_start = - 18; //log(1e-8); //log(1e-8);  //*** @@@  changed  -21.0
   const double x_end   = 0.0; //0.0;    //*** @@@  changed 6.0
 
   // @@@ Adding npts, for x-arrays
