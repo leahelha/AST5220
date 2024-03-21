@@ -67,7 +67,7 @@ void RecombinationHistory::solve_number_density_electrons(){
       //=============================================================================
       Xe_arr[i] = Xe_current;  // *** 
       ne_arr[i] = ne_current; // 
-      // std::cout << "Saha: Xe = " << Xe_arr[i] << " for x = " << x_array[i] << "\n";
+      // std::cout << "Saha: Xe = " << Xe_arr[i] << " for x = " << x_array[i] << " for i = " << i  << "\n";
       
     } else {
 
@@ -84,30 +84,48 @@ void RecombinationHistory::solve_number_density_electrons(){
       // The Peebles ODE equation
       ODESolver peebles_Xe_ode;
       ODEFunction dXedx = [&](double x, const double *Xe, double *dXedx){
-        return rhs_peebles_ode(x, Xe, dXedx);  
+        dXedx[0] = rhs_peebles_ode(x, Xe, dXedx);
+
+        return GSL_SUCCESS;  
       };
 
+      //=============================================================================
+      // TODO: Set up IC, solve the ODE and fetch the result 
+      //=============================================================================
       
-
-      Vector Xe_init = {Xe_arr[i]};
-      std::cout << "latest Xe after saha = " << Xe_init[0] << "\n" ;
-     
+      Vector Xe_init = {Xe_arr[i-1]};  // Trying to solve Peebles ODE from last Saha /last Peebles
+      // std::cout << "latest Xe after saha = " << Xe_init[0] << "\n" ;
 
       peebles_Xe_ode.solve(dXedx, x_array, Xe_init);
       auto solution_Xe = peebles_Xe_ode.get_data();
 
-      for (size j = 0; j < solution_Xe.size(); ++j ){
-        Xe_[j] = solution_Xe[j][0]
+      for (size_t j = 0; j < solution_Xe.size(); ++j){
+        Xe_arr[i+j] = solution_Xe[j][0];
+        int k = i+j;
+        if (k%100==0){
+          std::cout << "Peebles solution = " << Xe_arr[i+j] << " for x = " << x_array[k] << " for i = " << k << "\n" ;
+        }
+        if (x_array[k]>x_end){
+          break;
+        }
       }
+      
+      break;
 
-      std::cout << "latest Solution_Xe" << solution_Xe.back()[0] <<  " size is" << solution_Xe.size() <<"\n" ;
+
+      // Fill inn Xe vector
+      // Xe_arr[i] = solution_Xe;
+      // std::cout << "Peebles Xe[i] = " << Xe_arr[i] << " for x = " << x_array[i] << " for i = " << i << "\n" ;
+
+
+      // for (size j = i; j < solution_Xe.size(); ++j ){
+      //   Xe_[j] = solution_Xe[j][0]
+      // }
+
+      // std::cout << "latest Solution_Xe" << solution_Xe.back()[0] <<  " size is" << solution_Xe.size() <<"\n" ;
       
       
-      //=============================================================================
-      // TODO: Set up IC, solve the ODE and fetch the result 
-      //=============================================================================
-      //...
-      //...
+      
     
     }
   }
@@ -116,8 +134,7 @@ void RecombinationHistory::solve_number_density_electrons(){
   // TODO: Spline the result. Implement and make sure the Xe_of_x, ne_of_x 
   // functions are working
   //=============================================================================
-  //...
-  //...
+  
 
   Utils::EndTiming("Xe");
 }
@@ -175,13 +192,15 @@ std::pair<double,double> RecombinationHistory::electron_fraction_from_saha_equat
   
   // Solving as quadratic function gives Xe = (-Xe_saha_C +- sqrt(pow(Xe_saha_C, 2)) + 4.0*Xe_saha_C))/2.0, only positive solution is:
 
-  //std::cout << "C =  " << Xe_saha_C << "\n";
+  // std::cout << "C =  " << 4.0/Xe_saha_C << "\n";
 
-  if (4.0/Xe_saha_C < 0.01){ 
-    Xe = -(Xe_saha_C / 2.0) + Xe_saha_C/2.0 * (1.0/2.0)*(1 + (Xe_saha_C/4.0)/2.0);
-    Xe = 1.0; // Had to set an upper limit  *** is this allowed?
-  } else {
-    Xe = -(Xe_saha_C / 2.0) + Xe_saha_C/2.0 * sqrt((1+ 4.0/Xe_saha_C))/2.0;
+  if (4.0/Xe_saha_C < 0.001){ 
+    Xe = (Xe_saha_C/2.0) *( -1.0 + ( 1.0 + 2.0/Xe_saha_C ));  // 4.0/Xe_C / 2.0 = 2.0/Xe_C
+    std::cout << "C =  " << 4.0/Xe_saha_C << "\n";
+  } 
+  else{
+    // Xe = (Xe_saha_C/2.0) * ( -1.0+ sqrt( 1.0+ 4.0/Xe_saha_C ) );
+    std::cout << "C =  " << Xe_saha_C << "\n";
   }
 
   ne = Xe*nH;
@@ -259,7 +278,7 @@ int RecombinationHistory::rhs_peebles_ode(double x, const double *Xe, double *dX
   
   dXedx[0] = RHS;
 
-  return GSL_SUCCESS;
+  return dXedx[0];
 }
 
 //====================================================
