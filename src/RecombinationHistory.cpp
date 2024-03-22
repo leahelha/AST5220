@@ -70,7 +70,7 @@ void RecombinationHistory::solve_number_density_electrons(){
       // std::cout << "Saha: Xe = " << Xe_arr[i] << " for x = " << x_array[i] << " for i = " << i  << "\n";
       
     } else {
-
+      
       //==============================================================
       // TODO: Compute X_e from current time til today by solving 
       // the Peebles equation (NB: if you solve all in one go remember to
@@ -79,29 +79,35 @@ void RecombinationHistory::solve_number_density_electrons(){
       //==============================================================
       //...
       //...
-      // std::cout << "CHECK PEEBLES" << "\n" ;
+      
 
       // The Peebles ODE equation
       ODESolver peebles_Xe_ode;
       ODEFunction dXedx = [&](double x, const double *Xe, double *dXedx){
         dXedx[0] = rhs_peebles_ode(x, Xe, dXedx);
-
-        return GSL_SUCCESS;  
+        return GSL_SUCCESS;    
       };
-
+      
       //=============================================================================
       // TODO: Set up IC, solve the ODE and fetch the result 
       //=============================================================================
       
       Vector Xe_init = {Xe_arr[i-1]};  // Trying to solve Peebles ODE from last Saha /last Peebles
       // std::cout << "latest Xe after saha = " << Xe_init[0] << "\n" ;
-
-      peebles_Xe_ode.solve(dXedx, x_array, Xe_init);
+      
+      // std::cout << "CHECK PEEBLES " << std::endl;
+      int npts_peebles = npts_rec_arrays-(i-1);
+      Vector x_array_Peebs = Utils::linspace(x_array[i], x_end, npts_peebles); // CHANGE CORRECT npts ***
+      peebles_Xe_ode.solve(dXedx, x_array_Peebs, Xe_init); 
+      std::cout << "CHECK PEEBLES " << " i= " << i << std::endl;
       auto solution_Xe = peebles_Xe_ode.get_data();
-
+      
+      
       for (size_t j = 0; j < solution_Xe.size(); ++j){
+        
         Xe_arr[i+j] = solution_Xe[j][0];
         int k = i+j;
+        // std::cout << "CHECK PEEBLES " << k << "  " ;
         if (k%100==0){
           std::cout << "Peebles solution = " << Xe_arr[i+j] << " for x = " << x_array[k] << " for i = " << k << "\n" ;
         }
@@ -112,21 +118,8 @@ void RecombinationHistory::solve_number_density_electrons(){
       
       break;
 
-
-      // Fill inn Xe vector
-      // Xe_arr[i] = solution_Xe;
-      // std::cout << "Peebles Xe[i] = " << Xe_arr[i] << " for x = " << x_array[i] << " for i = " << i << "\n" ;
-
-
-      // for (size j = i; j < solution_Xe.size(); ++j ){
-      //   Xe_[j] = solution_Xe[j][0]
-      // }
-
-      // std::cout << "latest Solution_Xe" << solution_Xe.back()[0] <<  " size is" << solution_Xe.size() <<"\n" ;
       
       
-      
-    
     }
   }
 
@@ -134,6 +127,7 @@ void RecombinationHistory::solve_number_density_electrons(){
   // TODO: Spline the result. Implement and make sure the Xe_of_x, ne_of_x 
   // functions are working
   //=============================================================================
+  
   
 
   Utils::EndTiming("Xe");
@@ -195,12 +189,12 @@ std::pair<double,double> RecombinationHistory::electron_fraction_from_saha_equat
   // std::cout << "C =  " << 4.0/Xe_saha_C << "\n";
 
   if (4.0/Xe_saha_C < 0.001){ 
-    Xe = (Xe_saha_C/2.0) *( -1.0 + ( 1.0 + 2.0/Xe_saha_C ));  // 4.0/Xe_C / 2.0 = 2.0/Xe_C
-    std::cout << "C =  " << 4.0/Xe_saha_C << "\n";
+    Xe = (Xe_saha_C/2.0) *(2.0/Xe_saha_C );  // This is just 1
+    // std::cout << "C =  " << 4.0/Xe_saha_C << "\n";
   } 
   else{
-    // Xe = (Xe_saha_C/2.0) * ( -1.0+ sqrt( 1.0+ 4.0/Xe_saha_C ) );
-    std::cout << "C =  " << Xe_saha_C << "\n";
+    Xe = (Xe_saha_C/2.0) * ( -1.0+ sqrt( 1.0+ 4.0/Xe_saha_C ) );
+    // std::cout << "C =  " << Xe_saha_C << "\n";
   }
 
   ne = Xe*nH;
@@ -265,10 +259,11 @@ int RecombinationHistory::rhs_peebles_ode(double x, const double *Xe, double *dX
   double Lambda_alpha = H * pow((3.0*epsilon_0), 3)/(pow((8.0*Constants.pi),2)*pow(c_, 3)*pow(h_bar, 3)*n1s); // s^-1
   double Lambda_2s_1s = 8.227; // s^-1
 
-  double alpha_2 = (64.0*Constants.pi)/(sqrt(27*Constants.pi)) * (pow(alpha, 2))/(pow(m_e, 2))* sqrt(epsilon_0/(Tb*kb))*phi_2; // m^3/s
+  double alpha_2 = (8*c_)/(sqrt(3*Constants.pi)) * Constants.sigma_T* sqrt(epsilon_0/(Tb*kb))*phi_2; // m^3/s
 
   double beta = alpha_2*pow(((m_e*Tb*kb)/(2.0*Constants.pi*pow(h_bar, 2))), (3.0/2.0))*exp(-epsilon_0/(Tb*kb)); // 1/s
-  double beta_2 = beta*exp( (3.0*epsilon_0)/(4.0*kb*Tb) ); // 1/s
+  double beta_2 = alpha_2*pow(((m_e*Tb*kb)/(2.0*Constants.pi*pow(h_bar, 2))), (3.0/2.0))*exp(-epsilon_0/(4.0*Tb*kb)); // 1/s
+  // double beta_2 = beta*exp( (3.0*epsilon_0)/(4.0*kb*Tb) ); // 1/s
 
   double Cr = (Lambda_2s_1s + Lambda_alpha)/(Lambda_2s_1s + Lambda_alpha + beta_2); // dimensionless
 
