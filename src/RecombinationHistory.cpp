@@ -29,6 +29,14 @@ void RecombinationHistory::solve(){
 //====================================================
 
 void RecombinationHistory::solve_number_density_electrons(){
+  
+  const double OmegaB      = cosmo->get_OmegaB();
+  const double h           = cosmo->get_h();
+  const double H0 = Constants.H0_over_h*h;
+  const double rho_c0 = (3.0*pow(H0, 2)*OmegaB)/(8.0*Constants.pi*Constants.G);
+
+  std::ofstream outFile("Xe_test.txt");
+
   Utils::StartTiming("Xe");
   
   //=============================================================================
@@ -53,9 +61,6 @@ void RecombinationHistory::solve_number_density_electrons(){
     const double Xe_current = Xe_ne_data.first;
     const double ne_current = Xe_ne_data.second;
 
-    if (i % 100 == 0){
-      std::cout << " Xe[i] current = " << Xe_current<< " ne[i] current = " << ne_current<<" x = " << x_array[i]<<" i = " << i <<"\n" ;
-    }
     // Are we still in the Saha regime?
     if(Xe_current < Xe_saha_limit)
       saha_regime = false;
@@ -65,9 +70,16 @@ void RecombinationHistory::solve_number_density_electrons(){
       //=============================================================================
       // TODO: Store the result we got from the Saha equation
       //=============================================================================
-      Xe_arr[i] = Xe_current;  // *** 
-      ne_arr[i] = ne_current; // 
-      // std::cout << "Saha: Xe = " << Xe_arr[i] << " for x = " << x_array[i] << " for i = " << i  << "\n";
+      Xe_arr[i] = Xe_current; 
+      ne_arr[i] = ne_current; 
+      
+
+      outFile << Xe_arr[i] << " " <<  ne_arr[i] << " "  <<  x_array[i] << " "  << "\n";
+
+      if (i % 100 == 0){
+        std::cout << " Saha = " << Xe_arr[i] << " for x = " << x_array[i] << " for i = " << i  <<"\n" ;
+        
+      }
       
     } else {
       
@@ -77,15 +89,15 @@ void RecombinationHistory::solve_number_density_electrons(){
       // exit the for-loop!)
       // Implement rhs_peebles_ode
       //==============================================================
-      //...
-      //...
+
       
 
       // The Peebles ODE equation
       ODESolver peebles_Xe_ode;
       ODEFunction dXedx = [&](double x, const double *Xe, double *dXedx){
-        dXedx[0] = rhs_peebles_ode(x, Xe, dXedx);
-        return GSL_SUCCESS;    
+        
+        return rhs_peebles_ode(x, Xe, dXedx);
+
       };
       
       //=============================================================================
@@ -93,34 +105,60 @@ void RecombinationHistory::solve_number_density_electrons(){
       //=============================================================================
       
       Vector Xe_init = {Xe_arr[i-1]};  // Trying to solve Peebles ODE from last Saha /last Peebles
-      // std::cout << "latest Xe after saha = " << Xe_init[0] << "\n" ;
-      
-      // std::cout << "CHECK PEEBLES " << std::endl;
-      int npts_peebles = npts_rec_arrays-(i-1);
-      Vector x_array_Peebs = Utils::linspace(x_array[i], x_end, npts_peebles); // CHANGE CORRECT npts ***
+     
+
+      // int npts_peebles = npts_rec_arrays-(i-1);  // Relic from when I did Peebles all in one go
+      double peebles_xstart = x_array[i-1];
+      double peebles_xend = x_array[i]; //x_end;
+      int npts_peebles = 2;
+
+
+      Vector x_array_Peebs = Utils::linspace(peebles_xstart, peebles_xend, npts_peebles); 
+
       peebles_Xe_ode.solve(dXedx, x_array_Peebs, Xe_init); 
-      std::cout << "CHECK PEEBLES " << " i= " << i << std::endl;
       auto solution_Xe = peebles_Xe_ode.get_data();
       
+
+      const double a           = exp(x_array[i]);
+      double nH = OmegaB*rho_c0 / (Constants.m_H*pow(a,2));
+      Xe_arr[i] = solution_Xe[1][0];
+      ne_arr[i] = solution_Xe[1][0]*nH;
+
+      outFile  << Xe_arr[i] << " "  << ne_arr[i] << " "  << x_array[i] << " "  << "\n" ;
       
+      if (i % 100 == 0){
+        std::cout << "Peebles solution = " << Xe_arr[i] << " ne = " <<  ne_arr[i] << " for x = " << x_array[i] << " for i = " << i << "\n" ;
+      }
+
+      /*
       for (size_t j = 0; j < solution_Xe.size(); ++j){
+        int k = i+j;
+
+        const double a           = exp(x_array[k]);
+        double nH = OmegaB*rho_c0 / (Constants.m_H*pow(a,2)); 
+        
         
         Xe_arr[i+j] = solution_Xe[j][0];
-        int k = i+j;
+        ne_arr[i+j] = solution_Xe[j][0]*nH;
+        
+        
         // std::cout << "CHECK PEEBLES " << k << "  " ;
-        if (k%100==0){
-          std::cout << "Peebles solution = " << Xe_arr[i+j] << " for x = " << x_array[k] << " for i = " << k << "\n" ;
-        }
-        if (x_array[k]>x_end){
-          break;
-        }
-      }
-      
-      break;
 
+        if (i%1 == 0){
+          std::cout << "Peebles solution = " << Xe_arr[i+j] << " ne = " <<  ne_arr[i+j] << " for x = " << x_array[k] << " for i = " << k << "\n" ;
+          
+          
+          }
+
+        } 
+        */
+
+      // break;  
       
-      
+     
+
     }
+
   }
 
   //=============================================================================
@@ -128,7 +166,9 @@ void RecombinationHistory::solve_number_density_electrons(){
   // functions are working
   //=============================================================================
   
-  
+  Xe_of_x_spline.create(x_array, Xe_arr, "Xe_of_x");
+  ne_of_x_spline.create(x_array, ne_arr, "ne_of_x");
+
 
   Utils::EndTiming("Xe");
 }
@@ -159,6 +199,7 @@ std::pair<double,double> RecombinationHistory::electron_fraction_from_saha_equat
   const double H0 = H0_over_h*h;
   const double rho_c0 = (3.0*pow(H0, 2)*OmegaB)/(8.0*Constants.pi*G);
 
+  
   // Electron fraction and number density
   double Xe = 0.0;
   double ne = 0.0;
@@ -233,7 +274,7 @@ int RecombinationHistory::rhs_peebles_ode(double x, const double *Xe, double *dX
   const double Neff        = cosmo->get_Neff(); 
   const double TCMB        = cosmo->get_TCMB();
         double H           = cosmo -> H_of_x(x);
-
+  
   const double H0          = H0_over_h*h;
 
   const double rho_c0 = (3.0*pow(H0, 2)*OmegaB)/(8.0*Constants.pi*G);
@@ -257,7 +298,7 @@ int RecombinationHistory::rhs_peebles_ode(double x, const double *Xe, double *dX
   double phi_2 = 0.448 * log(epsilon_0/(kb*Tb)); // dimensionless
 
   double Lambda_alpha = H * pow((3.0*epsilon_0), 3)/(pow((8.0*Constants.pi),2)*pow(c_, 3)*pow(h_bar, 3)*n1s); // s^-1
-  double Lambda_2s_1s = 8.227; // s^-1
+  double Lambda_2s_1s = lambda_2s1s; // s^-1
 
   double alpha_2 = (8*c_)/(sqrt(3*Constants.pi)) * Constants.sigma_T* sqrt(epsilon_0/(Tb*kb))*phi_2; // m^3/s
 
@@ -270,10 +311,11 @@ int RecombinationHistory::rhs_peebles_ode(double x, const double *Xe, double *dX
 
 
   double RHS = (Cr/H)*(beta * (1-X_e) - nH*alpha_2*pow(X_e, 2));
-  
+  // std::cout << "RHS is " << RHS << " - nH*alpha_2*pow(X_e, 2)) = " <<  - nH*alpha_2*pow(X_e, 2) << "\n";
+  // std::cout << "Xe is " << X_e << " Cr is " << Cr <<  "\n";
   dXedx[0] = RHS;
 
-  return dXedx[0];
+  return GSL_SUCCESS;
 }
 
 //====================================================
@@ -383,9 +425,9 @@ double RecombinationHistory::Xe_of_x(double x) const{
   //...
   //...
 
-  double Xe_of_x = exp(log_Xe_of_x_spline(x)); // *** try this out
+  // double Xe_of_x = exp(log_Xe_of_x_spline(x)); // *** try this out
 
-  return Xe_of_x;
+  return Xe_of_x_spline(x);
 }
 
 double RecombinationHistory::ne_of_x(double x) const{
@@ -393,7 +435,7 @@ double RecombinationHistory::ne_of_x(double x) const{
  
   //double ne_of_x = get_Xe_of_x(x)*(OmegaB*3*pow(H0, 2))/(Constants.m_H * pow(exp(x), 3) * 8 * Constants.pi * Constants.G)
 
-  return 0.0;
+  return ne_of_x_spline(x);
 }
 
 double RecombinationHistory::get_Yp() const{
