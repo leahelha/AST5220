@@ -30,6 +30,7 @@ void RecombinationHistory::solve(){
 
 void RecombinationHistory::solve_number_density_electrons(){
   
+  
   const double OmegaB      = cosmo->get_OmegaB();
   const double h           = cosmo->get_h();
   const double H0 = Constants.H0_over_h*h;
@@ -77,7 +78,7 @@ void RecombinationHistory::solve_number_density_electrons(){
       outFile << Xe_arr[i] << " " <<  ne_arr[i] << " "  <<  x_array[i] << " "  << "\n";
 
       if (i % 100 == 0){
-        std::cout << " Saha = " << Xe_arr[i] << " for x = " << x_array[i] << " for i = " << i  <<"\n" ;
+        // std::cout << " Saha = " << Xe_arr[i] << " for x = " << x_array[i] << " for i = " << i  <<"\n" ;
         
       }
       
@@ -127,7 +128,7 @@ void RecombinationHistory::solve_number_density_electrons(){
       outFile  << Xe_arr[i] << " "  << ne_arr[i] << " "  << x_array[i] << " "  << "\n" ;
       
       if (i % 100 == 0){
-        std::cout << "Peebles solution = " << Xe_arr[i] << " ne = " <<  ne_arr[i] << " for x = " << x_array[i] << " for i = " << i << "\n" ;
+        //std::cout << "Peebles solution = " << Xe_arr[i] << " ne = " <<  ne_arr[i] << " for x = " << x_array[i] << " for i = " << i << "\n" ;
       }
 
       /*
@@ -221,16 +222,16 @@ std::pair<double,double> RecombinationHistory::electron_fraction_from_saha_equat
   double h_bar = hbar;
 
 
-  double Xe_saha_Cfrac = (kb * m_e * Tb)/(2.0*Constants.pi*pow(h_bar, 2));
+  double Xe_saha_Cfrac = (kb * m_e * Tb)/(2.0 * Constants.pi * pow(h_bar, 2));
 
-  double Xe_saha_C = (1.0/nH)* pow(Xe_saha_Cfrac, (3.0/2.0)) *exp(-epsilon_0/(kb * Tb));  // Assuming nb = nH
+  double Xe_saha_C = (1.0/nH)* pow(Xe_saha_Cfrac, (3.0/2.0)) * exp(-epsilon_0/(kb * Tb));  // Assuming nb = nH
   
   // Solving as quadratic function gives Xe = (-Xe_saha_C +- sqrt(pow(Xe_saha_C, 2)) + 4.0*Xe_saha_C))/2.0, only positive solution is:
 
   // std::cout << "C =  " << 4.0/Xe_saha_C << "\n";
 
   if (4.0/Xe_saha_C < 0.001){ 
-    Xe = (Xe_saha_C/2.0) *(2.0/Xe_saha_C );  // This is just 1
+    Xe = (Xe_saha_C/2.0) * (2.0/Xe_saha_C );  // This is just 1
     // std::cout << "C =  " << 4.0/Xe_saha_C << "\n";
   } 
   else{
@@ -327,37 +328,56 @@ void RecombinationHistory::solve_for_optical_depth_tau(){
   Utils::StartTiming("opticaldepth");
 
   // Set up x-arrays to integrate over. We split into three regions as we need extra points in reionisation
-  const int npts = 1000;
-  Vector x_array = Utils::linspace(x_start, x_end, npts);
+  const int npts =  npts_rec_arrays;
+  Vector x_array_tau_reversed = Utils::linspace(0, x_start, npts);  // Reversing xarray so that we can place a boundary condition on tau(x=0)
+  Vector x_array = Utils::linspace(x_start, x_end, npts);  
 
   // The ODE system dtau/dx, dtau_noreion/dx and dtau_baryon/dx
+  ODESolver tau_ode;
   ODEFunction dtaudx = [&](double x, const double *tau, double *dtaudx){
 
-    //=============================================================================
-    // TODO: Write the expression for dtaudx
-    //=============================================================================
-    //...
-    //...
+    // Get variables
+    double ne = ne_of_x(x);
+    double H  = cosmo -> H_of_x(x);
+    double deriv = -Constants.c * ne * Constants.sigma_T / H ;
 
     // Set the derivative for photon optical depth
-    dtaudx[0] = 0.0;
-
+    dtaudx[0] = deriv;
     return GSL_SUCCESS;
   };
 
   //=============================================================================
   // TODO: Set up and solve the ODE and make tau splines
   //=============================================================================
-  //...
-  //...
-
+  Vector tau_init = {0.0};  // Tau(x=0) = 0
+  tau_ode.solve(dtaudx,  x_array_tau_reversed, tau_init); 
+  auto solution_tau = tau_ode.get_data();
+  
+  std::cout << "Check tau " << solution_tau.back()[0] << " \n" ; // OUTPUT: Check tau 0.153604 
   //=============================================================================
   // TODO: Compute visibility functions and spline everything
   //=============================================================================
-  //...
-  //...
+  Vector g_tilde(npts);
+  Vector tau_(npts);
 
+  // Saving the tau solution in the correct x direction
+  for (size_t j = 0; j < solution_tau.size(); ++j){
+  int k = npts - j-1;
+  //std::cout << "k = " << k << " \n" ;
+
+  g_tilde[j] = solution_tau[k][0]*exp(solution_tau[k][0]);
+  tau_[j] = solution_tau[k][0];
+
+  if (k%1000 == 0){ 
+    std::cout << "Check tau loop " << solution_tau[k][0] << " \n" ;
+  }
+  } 
+
+  g_tilde_of_x_spline.create(x_array, g_tilde, "g");
+  tau_of_x_spline.create(x_array, tau_, "tau");
+  
   Utils::EndTiming("opticaldepth");
+
 }
 
 //====================================================
@@ -377,7 +397,7 @@ double RecombinationHistory::dtaudx_of_x(double x) const{
   //...
   //...
 
-  return 0.0;
+  return tau_of_x_spline.deriv_x(x);
 }
 
 double RecombinationHistory::ddtauddx_of_x(double x) const{
@@ -397,11 +417,8 @@ double RecombinationHistory::g_tilde_of_x(double x) const{
 
 double RecombinationHistory::dgdx_tilde_of_x(double x) const{
 
-  //=============================================================================
-  // TODO: Implement
-  //=============================================================================
-  //...
-  //...
+  double tau = tau_of_x(x);
+  double dtaudx = dtaudx_of_x(x);
 
   return 0.0;
 }
@@ -418,23 +435,10 @@ double RecombinationHistory::ddgddx_tilde_of_x(double x) const{
 }
 
 double RecombinationHistory::Xe_of_x(double x) const{
-
-  //=============================================================================
-  // TODO: Implement
-  //=============================================================================
-  //...
-  //...
-
-  // double Xe_of_x = exp(log_Xe_of_x_spline(x)); // *** try this out
-
   return Xe_of_x_spline(x);
 }
 
 double RecombinationHistory::ne_of_x(double x) const{
-
- 
-  //double ne_of_x = get_Xe_of_x(x)*(OmegaB*3*pow(H0, 2))/(Constants.m_H * pow(exp(x), 3) * 8 * Constants.pi * Constants.G)
-
   return ne_of_x_spline(x);
 }
 
@@ -449,6 +453,8 @@ void RecombinationHistory::info() const{
   std::cout << "\n";
   std::cout << "Info about recombination/reionization history class:\n";
   std::cout << "Yp:          " << Yp          << "\n";
+  std::cout <<  "Tau(0) = " <<  tau_of_x(0.0)  << "\n";
+  std::cout <<  "Tau(-18) = " <<  tau_of_x(-18)  << "\n";
   std::cout << std::endl;
 } 
 
