@@ -4,7 +4,7 @@ import matplotlib.patches as patches
 from astropy import constants as const
 
 
-file = np.loadtxt("Xe_test.txt")
+file = np.loadtxt("./Xe_test.txt")
 
 
 Xe = file[:, 0]
@@ -16,4 +16,4 @@ plt.yscale("log")
 plt.plot(x, Xe)
 plt.xlabel("x")
 plt.ylabel("Xe")
-plt.show()
+plt.savefig("./Figs/M2/Xe_vs_x.pdf")

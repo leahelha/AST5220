@@ -330,7 +330,7 @@ void RecombinationHistory::solve_for_optical_depth_tau(){
   // Set up x-arrays to integrate over. We split into three regions as we need extra points in reionisation
   const int npts =  npts_rec_arrays;
   Vector x_array_tau_reversed = Utils::linspace(0, x_start, npts);  // Reversing xarray so that we can place a boundary condition on tau(x=0)
-  Vector x_array = Utils::linspace(x_start, x_end, npts);  
+  Vector x_array = Utils::linspace(x_start, 0, npts);  
 
   // The ODE system dtau/dx, dtau_noreion/dx and dtau_baryon/dx
   ODESolver tau_ode;
@@ -360,12 +360,13 @@ void RecombinationHistory::solve_for_optical_depth_tau(){
   Vector g_tilde(npts);
   Vector tau_(npts);
 
+
   // Saving the tau solution in the correct x direction
   for (size_t j = 0; j < solution_tau.size(); ++j){
   int k = npts - j-1;
   //std::cout << "k = " << k << " \n" ;
 
-  g_tilde[j] = solution_tau[k][0]*exp(solution_tau[k][0]);
+  g_tilde[j] = - (Constants.c*ne_of_x(x_array[j])*Constants.sigma_T / (cosmo->H_of_x(x_array[j])))*exp(solution_tau[k][0]);
   tau_[j] = solution_tau[k][0];
 
   if (k%1000 == 0){ 
@@ -375,8 +376,24 @@ void RecombinationHistory::solve_for_optical_depth_tau(){
 
   g_tilde_of_x_spline.create(x_array, g_tilde, "g");
   tau_of_x_spline.create(x_array, tau_, "tau");
+
+  // Saving spline of dtaudx
+  Vector dtaudx_(npts);
+  
+  for(int i=0;i<npts;i++){
+    dtaudx_[i] = -Constants.c*ne_of_x(x_array[i])*Constants.sigma_T / (cosmo->H_of_x(x_array[i]));
+    }
+  dtaudx_of_x_spline.create(x_array, dtaudx_, "dtaudx"); 
   
   Utils::EndTiming("opticaldepth");
+
+
+  // Generate dgtildedx 
+  Vector dg_tildedx(npts);
+  for(int i=0;i<npts;i++){
+    dg_tildedx[i] = exp(-tau_of_x(x_array[i])) * (dtaudx_of_x(x_array[i])*dtaudx_of_x(x_array[i]) - ddtauddx_of_x(x_array[i])); // ***
+  }
+  dg_tildedx_of_x_spline.create(x_array, dg_tildedx, "dg_tildedx"); 
 
 }
 
@@ -389,26 +406,11 @@ double RecombinationHistory::tau_of_x(double x) const{
 }
 
 double RecombinationHistory::dtaudx_of_x(double x) const{
-
-  //=============================================================================
-  // TODO: Implement. Either from the tau-spline tau_of_x_spline.deriv_(x) or 
-  // from a separate spline if you choose to do this
-  //=============================================================================
-  //...
-  //...
-
-  return tau_of_x_spline.deriv_x(x);
+  return dtaudx_of_x_spline(x);
 }
 
-double RecombinationHistory::ddtauddx_of_x(double x) const{
-
-  //=============================================================================
-  // TODO: Implement
-  //=============================================================================
-  //...
-  //...
-
-  return 0.0;
+double RecombinationHistory::ddtauddx_of_x(double x) const{ 
+  return dtaudx_of_x_spline.deriv_x(x);
 }
 
 double RecombinationHistory::g_tilde_of_x(double x) const{
@@ -416,22 +418,11 @@ double RecombinationHistory::g_tilde_of_x(double x) const{
 }
 
 double RecombinationHistory::dgdx_tilde_of_x(double x) const{
-
-  double tau = tau_of_x(x);
-  double dtaudx = dtaudx_of_x(x);
-
-  return 0.0;
+  return dg_tildedx_of_x_spline;
 }
 
 double RecombinationHistory::ddgddx_tilde_of_x(double x) const{
-
-  //=============================================================================
-  // TODO: Implement
-  //=============================================================================
-  //...
-  //...
-
-  return 0.0;
+  return dg_tildedx_of_x_spline.deriv_x(x);;
 }
 
 double RecombinationHistory::Xe_of_x(double x) const{

@@ -55,6 +55,9 @@ class RecombinationHistory{
     Spline Xe_of_x_spline{"Xe_of_x"};
     Spline ne_of_x_spline{"ne_of_x"};
 
+    Spline dtaudx_of_x_spline{"dtaudx"};
+    Spline dg_tildedx_of_x_spline{"dg_tildedx"}; 
+
   public:
 
     // Construtors
