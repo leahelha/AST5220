@@ -42,13 +42,15 @@ ddgtilde = data[:, 8]
 plt.figure()
 plt.xlim(-12, 0)
 plt.yscale('log')
-plt.plot(x, ddtau, label=r"$\tau''(x)$")
+plt.plot(x, ddtau, 'g:',  label=r"$\tau''(x)$")
 plt.plot(x, tau, label=r"$\tau (x)$")
-plt.plot(x, -dtau, 'r', label=r"-$\tau'(x)$")
+plt.plot(x, -dtau, 'r--', label=r"-$\tau'(x)$")
 plt.xlabel("x")
-plt.savefig("./Figs/M2/Taus_vs_x.pdf")
 plt.legend()
-plt.show()
+plt.savefig("./Figs/M2/Taus_vs_x.pdf")
+
+# plt.show()
+
 
 # Plot g_tilde vs x
 plt.figure(figsize=(10, 6))  # Specifies the figure size for the first plot
@@ -56,10 +58,11 @@ plt.xlim(-12, 0)
 plt.plot(x, gtilde, label=r'$\tilde{g}(x)$')
 plt.xlabel('x')
 plt.ylabel(r'$\tilde{g}(x)$')
-# plt.title(r'Plot of $\tilde{g}$ vs. x')
 plt.legend()
+# plt.title(r'Plot of $\tilde{g}$ vs. x')
+
 plt.savefig("./Figs/M2/Gtilde_vs_x.pdf")
-plt.show()  # Show the first plot
+# plt.show()  # Show the first plot
 
 # Plot dg_tilde/dx vs x
 plt.figure(figsize=(10, 6))  # Specifies the figure size for the second plot
@@ -70,7 +73,7 @@ plt.ylabel(r'$\frac{d\tilde{g}}{dx}(x)$')
 # plt.title(r'Plot of $\frac{d\tilde{g}}{dx}$ vs. x')
 plt.legend()
 plt.savefig("./Figs/M2/Dgtilde_vs_x.pdf")
-plt.show()  # Show the second plot
+# plt.show()  # Show the second plot
 
 # Plot d^2g_tilde/dx^2 vs x
 plt.figure(figsize=(10, 6))  # Specifies the figure size for the third plot
@@ -81,4 +84,4 @@ plt.ylabel(r'$\frac{d^2\tilde{g}}{dx^2}(x)$')
 # plt.title(r'Plot of $\frac{d^2\tilde{g}}{dx^2}$ vs. x')
 plt.legend()
 plt.savefig("./Figs/M2/DdGtilde_vs_x.pdf")
-plt.show()  # Show the third plot
+# plt.show()  # Show the third plot

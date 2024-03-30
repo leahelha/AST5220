@@ -92,7 +92,7 @@ void BackgroundCosmology::solve(){
     return GSL_SUCCESS;
   };
 
-  Vector t_init = {0.0}; // *** Just trying something @@@
+  Vector t_init = {1.0/(2.0*H_of_x(x_start))}; // *** Just trying something @@@
 
   ODESolver odet;
   odet.solve(dtdx, x_array, t_init);

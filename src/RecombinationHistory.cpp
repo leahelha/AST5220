@@ -34,7 +34,7 @@ void RecombinationHistory::solve_number_density_electrons(){
   const double OmegaB      = cosmo->get_OmegaB();
   const double h           = cosmo->get_h();
   const double H0 = Constants.H0_over_h*h;
-  const double rho_c0 = (3.0*pow(H0, 2)*OmegaB)/(8.0*Constants.pi*Constants.G);
+  const double rho_c0 = (3.0*pow(H0, 2.0))/(8.0*Constants.pi*Constants.G);  
 
   std::ofstream outFile("Xe_test.txt");
 
@@ -121,7 +121,7 @@ void RecombinationHistory::solve_number_density_electrons(){
       
 
       const double a           = exp(x_array[i]);
-      double nH = OmegaB*rho_c0 / (Constants.m_H*pow(a,2));
+      double nH = OmegaB*rho_c0 / (Constants.m_H*pow(a,3.0));
       Xe_arr[i] = solution_Xe[1][0];
       ne_arr[i] = solution_Xe[1][0]*nH;
 
@@ -136,7 +136,7 @@ void RecombinationHistory::solve_number_density_electrons(){
         int k = i+j;
 
         const double a           = exp(x_array[k]);
-        double nH = OmegaB*rho_c0 / (Constants.m_H*pow(a,2)); 
+        double nH = OmegaB*rho_c0 / (Constants.m_H*pow(a,3)); 
         
         
         Xe_arr[i+j] = solution_Xe[j][0];
@@ -198,7 +198,7 @@ std::pair<double,double> RecombinationHistory::electron_fraction_from_saha_equat
   const double TCMB        = cosmo->get_TCMB();
 
   const double H0 = H0_over_h*h;
-  const double rho_c0 = (3.0*pow(H0, 2)*OmegaB)/(8.0*Constants.pi*G);
+  const double rho_c0 = (3.0*pow(H0, 2.0))/(8.0*Constants.pi*G);
 
   
   // Electron fraction and number density
@@ -210,7 +210,7 @@ std::pair<double,double> RecombinationHistory::electron_fraction_from_saha_equat
 
   // Ignoring Yp, setting Yp = 0
   //double nb = (3.0*pow(H0, 2)*OmegaB)/(8.0*Constants.pi*G*m_H*pow(a, 3)); // ### Clean up: nb is unnecessarily defined here 
-  double nH = OmegaB*rho_c0 / (m_H*pow(a,2));  
+  double nH = OmegaB*rho_c0 / (m_H*pow(a,3.0));  
   
   //=============================================================================
   // TODO: Compute Xe and ne from the Saha equation
@@ -278,7 +278,7 @@ int RecombinationHistory::rhs_peebles_ode(double x, const double *Xe, double *dX
   
   const double H0          = H0_over_h*h;
 
-  const double rho_c0 = (3.0*pow(H0, 2)*OmegaB)/(8.0*Constants.pi*G);
+  const double rho_c0 = (3.0*pow(H0, 2.0))/(8.0*Constants.pi*G);
 
   
 
@@ -292,26 +292,26 @@ int RecombinationHistory::rhs_peebles_ode(double x, const double *Xe, double *dX
   //=============================================================================
   // TODO: Write the expression for dXedx
   //=============================================================================
-  double nH = (3.0*pow(H0, 2)*OmegaB)/(8.0*Constants.pi*G*m_H*pow(a, 3)); // 1/m^3
+  double nH = (3.0*pow(H0, 2.0)*OmegaB)/(8.0*Constants.pi*G*m_H*pow(a, 3.0)); // 1/m^3
   double n1s = (1.0-X_e)*nH;  // 1/m^3
 
   double Tb = TCMB/a;
   double phi_2 = 0.448 * log(epsilon_0/(kb*Tb)); // dimensionless
 
-  double Lambda_alpha = H * pow((3.0*epsilon_0), 3)/(pow((8.0*Constants.pi),2)*pow(c_, 3)*pow(h_bar, 3)*n1s); // s^-1
+  double Lambda_alpha = H * pow((3.0*epsilon_0), 3.0)/(pow((8.0*Constants.pi),2.0)*pow(c_, 3.0)*pow(h_bar, 3.0)*n1s); // s^-1
   double Lambda_2s_1s = lambda_2s1s; // s^-1
 
-  double alpha_2 = (8*c_)/(sqrt(3*Constants.pi)) * Constants.sigma_T* sqrt(epsilon_0/(Tb*kb))*phi_2; // m^3/s
+  double alpha_2 = (8.0*c_)/(sqrt(3.0*Constants.pi)) * Constants.sigma_T* sqrt(epsilon_0/(Tb*kb))*phi_2; // m^3/s
 
-  double beta = alpha_2*pow(((m_e*Tb*kb)/(2.0*Constants.pi*pow(h_bar, 2))), (3.0/2.0))*exp(-epsilon_0/(Tb*kb)); // 1/s
-  double beta_2 = alpha_2*pow(((m_e*Tb*kb)/(2.0*Constants.pi*pow(h_bar, 2))), (3.0/2.0))*exp(-epsilon_0/(4.0*Tb*kb)); // 1/s
+  double beta = alpha_2*pow(((m_e*Tb*kb)/(2.0*Constants.pi*pow(h_bar, 2.0))), (3.0/2.0))*exp(-epsilon_0/(Tb*kb)); // 1/s
+  double beta_2 = alpha_2*pow(((m_e*Tb*kb)/(2.0*Constants.pi*pow(h_bar, 2.0))), (3.0/2.0))*exp(-epsilon_0/(4.0*Tb*kb)); // 1/s
   // double beta_2 = beta*exp( (3.0*epsilon_0)/(4.0*kb*Tb) ); // 1/s
 
   double Cr = (Lambda_2s_1s + Lambda_alpha)/(Lambda_2s_1s + Lambda_alpha + beta_2); // dimensionless
 
 
 
-  double RHS = (Cr/H)*(beta * (1-X_e) - nH*alpha_2*X_e*X_e); //pow(X_e, 2));
+  double RHS = (Cr/H)*(beta * (1.0-X_e) - nH*alpha_2*X_e*X_e); //pow(X_e, 2));
   // std::cout << "RHS is " << RHS << " - nH*alpha_2*pow(X_e, 2)) = " <<  - nH*alpha_2*pow(X_e, 2) << "\n";
   // std::cout << "Xe is " << X_e << " Cr is " << Cr <<  "\n";
   dXedx[0] = RHS;
@@ -337,7 +337,7 @@ void RecombinationHistory::solve_for_optical_depth_tau(){
   ODEFunction dtaudx = [&](double x, const double *tau, double *dtaudx){
 
     // Set the derivative for photon optical depth
-    dtaudx[0] = -Constants.c * ne_of_x(x) * Constants.sigma_T / (cosmo -> H_of_x(x)) ;
+    dtaudx[0] = -Constants.c * ne_of_x(x) * Constants.sigma_T  / (cosmo -> H_of_x(x)) ; //@@@
     return GSL_SUCCESS;
   };
 
@@ -349,8 +349,8 @@ void RecombinationHistory::solve_for_optical_depth_tau(){
   // tau_ode.solve(dtaudx,  x_array, tau_init); // @@@
 
   auto solution_tau = tau_ode.get_data();
-  
-  std::cout << "Check tau " << solution_tau.back()[0]<< " Deriv = " << -Constants.c * ne_of_x(x_array_tau_reversed[npts]) * Constants.sigma_T / (cosmo -> H_of_x(x_array_tau_reversed[npts]))  << " \n" ; // OUTPUT: Check tau 0.153604 
+  //@@@
+  std::cout << "PRIME! " <<" Check tau " << solution_tau.back()[0]<< " Deriv = " << -Constants.c * ne_of_x(x_array_tau_reversed[npts]) * Constants.sigma_T / (cosmo -> H_of_x(x_array_tau_reversed[npts]))  << " \n" ; // OUTPUT: Check tau 0.153604 
   //=============================================================================
   // Compute visibility functions and spline everything
   //=============================================================================
@@ -364,19 +364,20 @@ void RecombinationHistory::solve_for_optical_depth_tau(){
   int k = npts - j-1;
   //std::cout << "k = " << k << " \n" ;
 
-  g_tilde[j] = - (Constants.c*ne_of_x(x_array_tau_reversed[k])*Constants.sigma_T / (cosmo->H_of_x(x_array_tau_reversed[k])))*exp(solution_tau[k][0]);
+  g_tilde[j] = - (Constants.c*ne_of_x(x_array_tau_reversed[k])*Constants.sigma_T / (cosmo->H_of_x(x_array_tau_reversed[k]))) * exp(solution_tau[k][0]); //@@@
   tau_[j] = solution_tau[k][0];
 
   // @@@
   // g_tilde[j] = - (Constants.c*ne_of_x(x_array[j])*Constants.sigma_T / (cosmo->H_of_x(x_array[j])))*exp(solution_tau[j][0]);
   // tau_[j] = solution_tau[j][0] ;
 
-  if (j%1000 == 0){ 
-    std::cout << "Check tau loop " << tau_[j] << " deriv = " << - Constants.c*ne_of_x(x_array_tau_reversed[k])*Constants.sigma_T / (cosmo->H_of_x(x_array_tau_reversed[k]))<< " ne " << ne_of_x(x_array_tau_reversed[k]) << " x = " << x_array_tau_reversed[k] << " \n" ;
+  if (j%4000 == 0){ 
+    std::cout << "Check tau loop " << tau_[j] << " ne " << ne_of_x(x_array_tau_reversed[k]) << " x = " << x_array_tau_reversed[k] << " \n" ;
     // std::cout << "Check tau loop " << tau_[j] << " deriv = " << - (Constants.c*ne_of_x(x_array[j])*Constants.sigma_T / (cosmo->H_of_x(x_array[j]))) << " ne " << ne_of_x(x_array[j]) << " x = " << x_array[j] << " \n" ;
     }
   } 
-  std::cout << "c = " << Constants.c  << " sigma_T = " << Constants.sigma_T << " H(0) = " << cosmo->H_of_x(x_array[npts]) << " H_0 = " << Constants.H0_over_h*(cosmo->get_h()) << " \n" ;
+  //@@@
+  std::cout << "c = " << Constants.c  << " sigma_T = " << Constants.sigma_T << " Hp(0) = " << cosmo->Hp_of_x(x_array[npts])  << " \n" ;
   
   
   g_tilde_of_x_spline.create(x_array, g_tilde, "g");
@@ -386,7 +387,7 @@ void RecombinationHistory::solve_for_optical_depth_tau(){
   Vector dtaudx_(npts);
   
   for(int i=0;i<npts;i++){
-    dtaudx_[i] = -Constants.c*ne_of_x(x_array[i])*Constants.sigma_T / (cosmo->H_of_x(x_array[i]));
+    dtaudx_[i] = -Constants.c*ne_of_x(x_array[i])*Constants.sigma_T/ (cosmo->H_of_x(x_array[i])); //@@@
   }
 
   dtaudx_of_x_spline.create(x_array, dtaudx_, "dtaudx"); 
@@ -451,7 +452,9 @@ void RecombinationHistory::info() const{
   std::cout << "Info about recombination/reionization history class:\n";
   std::cout << "Yp:          " << Yp          << "\n";
   std::cout <<  "Tau(0) = " <<  tau_of_x(0.0)  << "\n";
-  std::cout <<  "Tau(-18) = " <<  tau_of_x(-18)  << "\n";
+  std::cout <<  "Tau(-18) = " <<  tau_of_x(-18.0)  << "\n";
+
+
   std::cout << std::endl;
 } 
 
