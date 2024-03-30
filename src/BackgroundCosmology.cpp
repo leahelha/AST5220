@@ -57,7 +57,7 @@ void BackgroundCosmology::solve(){
 
 
 
-  Vector eta_init = {0.00};
+  Vector eta_init = {1.0/Hp_of_x(x_start)};//{0.00}; COMMENTS CHANGED THIS
   ODESolver ode;
   ode.solve(detadx, x_array, eta_init);
   auto solution = ode.get_data();

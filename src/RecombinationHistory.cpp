@@ -311,7 +311,7 @@ int RecombinationHistory::rhs_peebles_ode(double x, const double *Xe, double *dX
 
 
 
-  double RHS = (Cr/H)*(beta * (1-X_e) - nH*alpha_2*pow(X_e, 2));
+  double RHS = (Cr/H)*(beta * (1-X_e) - nH*alpha_2*X_e*X_e); //pow(X_e, 2));
   // std::cout << "RHS is " << RHS << " - nH*alpha_2*pow(X_e, 2)) = " <<  - nH*alpha_2*pow(X_e, 2) << "\n";
   // std::cout << "Xe is " << X_e << " Cr is " << Cr <<  "\n";
   dXedx[0] = RHS;
@@ -329,51 +329,56 @@ void RecombinationHistory::solve_for_optical_depth_tau(){
 
   // Set up x-arrays to integrate over. We split into three regions as we need extra points in reionisation
   const int npts =  npts_rec_arrays;
-  Vector x_array_tau_reversed = Utils::linspace(0, x_start, npts);  // Reversing xarray so that we can place a boundary condition on tau(x=0)
-  Vector x_array = Utils::linspace(x_start, 0, npts);  
+  Vector x_array_tau_reversed = Utils::linspace(x_end, x_start, npts);  // Reversing xarray so that we can place a boundary condition on tau(x=0)
+  Vector x_array = Utils::linspace(x_start, x_end, npts);  
 
   // The ODE system dtau/dx, dtau_noreion/dx and dtau_baryon/dx
   ODESolver tau_ode;
   ODEFunction dtaudx = [&](double x, const double *tau, double *dtaudx){
 
-    // Get variables
-    double ne = ne_of_x(x);
-    double H  = cosmo -> H_of_x(x);
-    double deriv = -Constants.c * ne * Constants.sigma_T / H ;
-
     // Set the derivative for photon optical depth
-    dtaudx[0] = deriv;
+    dtaudx[0] = -Constants.c * ne_of_x(x) * Constants.sigma_T / (cosmo -> H_of_x(x)) ;
     return GSL_SUCCESS;
   };
 
   //=============================================================================
-  // TODO: Set up and solve the ODE and make tau splines
+  // Set up and solve the ODE and make tau splines
   //=============================================================================
   Vector tau_init = {0.0};  // Tau(x=0) = 0
-  tau_ode.solve(dtaudx,  x_array_tau_reversed, tau_init); 
+  tau_ode.solve(dtaudx,  x_array_tau_reversed, tau_init);  // @@@
+  // tau_ode.solve(dtaudx,  x_array, tau_init); // @@@
+
   auto solution_tau = tau_ode.get_data();
   
-  std::cout << "Check tau " << solution_tau.back()[0] << " \n" ; // OUTPUT: Check tau 0.153604 
+  std::cout << "Check tau " << solution_tau.back()[0]<< " Deriv = " << -Constants.c * ne_of_x(x_array_tau_reversed[npts]) * Constants.sigma_T / (cosmo -> H_of_x(x_array_tau_reversed[npts]))  << " \n" ; // OUTPUT: Check tau 0.153604 
   //=============================================================================
-  // TODO: Compute visibility functions and spline everything
+  // Compute visibility functions and spline everything
   //=============================================================================
   Vector g_tilde(npts);
   Vector tau_(npts);
-
-
+  
+  
   // Saving the tau solution in the correct x direction
   for (size_t j = 0; j < solution_tau.size(); ++j){
+    
   int k = npts - j-1;
   //std::cout << "k = " << k << " \n" ;
 
-  g_tilde[j] = - (Constants.c*ne_of_x(x_array[j])*Constants.sigma_T / (cosmo->H_of_x(x_array[j])))*exp(solution_tau[k][0]);
+  g_tilde[j] = - (Constants.c*ne_of_x(x_array_tau_reversed[k])*Constants.sigma_T / (cosmo->H_of_x(x_array_tau_reversed[k])))*exp(solution_tau[k][0]);
   tau_[j] = solution_tau[k][0];
 
-  if (k%1000 == 0){ 
-    std::cout << "Check tau loop " << solution_tau[k][0] << " \n" ;
-  }
-  } 
+  // @@@
+  // g_tilde[j] = - (Constants.c*ne_of_x(x_array[j])*Constants.sigma_T / (cosmo->H_of_x(x_array[j])))*exp(solution_tau[j][0]);
+  // tau_[j] = solution_tau[j][0] ;
 
+  if (j%1000 == 0){ 
+    std::cout << "Check tau loop " << tau_[j] << " deriv = " << - Constants.c*ne_of_x(x_array_tau_reversed[k])*Constants.sigma_T / (cosmo->H_of_x(x_array_tau_reversed[k]))<< " ne " << ne_of_x(x_array_tau_reversed[k]) << " x = " << x_array_tau_reversed[k] << " \n" ;
+    // std::cout << "Check tau loop " << tau_[j] << " deriv = " << - (Constants.c*ne_of_x(x_array[j])*Constants.sigma_T / (cosmo->H_of_x(x_array[j]))) << " ne " << ne_of_x(x_array[j]) << " x = " << x_array[j] << " \n" ;
+    }
+  } 
+  std::cout << "c = " << Constants.c  << " sigma_T = " << Constants.sigma_T << " H(0) = " << cosmo->H_of_x(x_array[npts]) << " H_0 = " << Constants.H0_over_h*(cosmo->get_h()) << " \n" ;
+  
+  
   g_tilde_of_x_spline.create(x_array, g_tilde, "g");
   tau_of_x_spline.create(x_array, tau_, "tau");
 
@@ -382,7 +387,8 @@ void RecombinationHistory::solve_for_optical_depth_tau(){
   
   for(int i=0;i<npts;i++){
     dtaudx_[i] = -Constants.c*ne_of_x(x_array[i])*Constants.sigma_T / (cosmo->H_of_x(x_array[i]));
-    }
+  }
+
   dtaudx_of_x_spline.create(x_array, dtaudx_, "dtaudx"); 
   
   Utils::EndTiming("opticaldepth");
@@ -454,7 +460,7 @@ void RecombinationHistory::info() const{
 //====================================================
 void RecombinationHistory::output(const std::string filename) const{
   std::ofstream fp(filename.c_str());
-  const int npts       = 5000;
+  const int npts       = npts_rec_arrays;
   const double x_min   = x_start;
   const double x_max   = x_end;
 
@@ -463,9 +469,11 @@ void RecombinationHistory::output(const std::string filename) const{
     fp << x                    << " ";
     fp << Xe_of_x(x)           << " ";
     fp << ne_of_x(x)           << " ";
+
     fp << tau_of_x(x)          << " ";
     fp << dtaudx_of_x(x)       << " ";
     fp << ddtauddx_of_x(x)     << " ";
+
     fp << g_tilde_of_x(x)      << " ";
     fp << dgdx_tilde_of_x(x)   << " ";
     fp << ddgddx_tilde_of_x(x) << " ";
