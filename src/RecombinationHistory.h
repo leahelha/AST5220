@@ -58,6 +58,10 @@ class RecombinationHistory{
     Spline dtaudx_of_x_spline{"dtaudx"};
     Spline dg_tildedx_of_x_spline{"dg_tildedx"}; 
 
+    Spline sound_horizon_of_x_spline{"s"}; 
+
+    Spline Xe_of_Saha{"Xe_of_x_Saha"};
+
   public:
 
     // Construtors
@@ -85,6 +89,10 @@ class RecombinationHistory{
     double Xe_of_x(double x) const;
     double ne_of_x(double x) const;
     double get_Yp() const;
+
+    // Get function for sound horizon *** I added this
+    double sound_horizon_of_x(double x) const;
+    double Xe_of_x_Saha(double x) const;
 };
 
 #endif

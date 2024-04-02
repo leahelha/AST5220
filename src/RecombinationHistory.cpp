@@ -45,6 +45,7 @@ void RecombinationHistory::solve_number_density_electrons(){
   //=============================================================================
   Vector x_array = Utils::linspace(x_start, x_end, npts_rec_arrays);
   Vector Xe_arr(npts_rec_arrays);
+  Vector Xe_arr_Saha(npts_rec_arrays); // For finding out what the Saha approximation predicts
   Vector ne_arr(npts_rec_arrays);
 
   // Calculate recombination history
@@ -71,7 +72,8 @@ void RecombinationHistory::solve_number_density_electrons(){
       //=============================================================================
       // TODO: Store the result we got from the Saha equation
       //=============================================================================
-      Xe_arr[i] = Xe_current; 
+      Xe_arr[i] = Xe_current;
+      Xe_arr_Saha[i] = Xe_current; 
       ne_arr[i] = ne_current; 
       
 
@@ -83,7 +85,18 @@ void RecombinationHistory::solve_number_density_electrons(){
       }
       
     } else {
+       // FINDING OUT WHAT THE SAHA EQUATION PREDICTS 
+      // std::cout << "THIS ONE x = " << x_array[i] << "\n";
+      auto Saha_temp = electron_fraction_from_saha_equation(x_array[i]);
+      if (Saha_temp.first > 0.0001){
+        Xe_arr_Saha[i] = Saha_temp.first;
+      }
       
+
+      // if (i % 100 == 0){
+      // std::cout << "THIS ONE Saha = " << Xe_arr_Saha[i] << "\n";
+      // }
+     
       //==============================================================
       // TODO: Compute X_e from current time til today by solving 
       // the Peebles equation (NB: if you solve all in one go remember to
@@ -155,6 +168,7 @@ void RecombinationHistory::solve_number_density_electrons(){
         */
 
       // break;  
+     
       
      
 
@@ -169,7 +183,7 @@ void RecombinationHistory::solve_number_density_electrons(){
   
   Xe_of_x_spline.create(x_array, Xe_arr, "Xe_of_x");
   ne_of_x_spline.create(x_array, ne_arr, "ne_of_x");
-
+  Xe_of_Saha.create(x_array, Xe_arr_Saha, "Xe_of_x_Saha");
 
   Utils::EndTiming("Xe");
 }
@@ -349,9 +363,8 @@ void RecombinationHistory::solve_for_optical_depth_tau(){
   // tau_ode.solve(dtaudx,  x_array, tau_init); // @@@
 
   auto solution_tau = tau_ode.get_data();
-  //@@@
-  std::cout << "PRIME! " <<" Check tau " << solution_tau.back()[0]<< " Deriv = " << -Constants.c * ne_of_x(x_array_tau_reversed[npts]) * Constants.sigma_T / (cosmo -> H_of_x(x_array_tau_reversed[npts]))  << " \n" ; // OUTPUT: Check tau 0.153604 
-  //=============================================================================
+
+   //=============================================================================
   // Compute visibility functions and spline everything
   //=============================================================================
   Vector g_tilde(npts);
@@ -360,25 +373,19 @@ void RecombinationHistory::solve_for_optical_depth_tau(){
   
   // Saving the tau solution in the correct x direction
   for (size_t j = 0; j < solution_tau.size(); ++j){
-    
-  int k = npts - j-1;
-  //std::cout << "k = " << k << " \n" ;
 
-  g_tilde[j] = - (Constants.c*ne_of_x(x_array_tau_reversed[k])*Constants.sigma_T / (cosmo->H_of_x(x_array_tau_reversed[k]))) * exp(solution_tau[k][0]); //@@@
+  int k = npts - j-1;
+
+  g_tilde[j] =  (Constants.c*ne_of_x(x_array_tau_reversed[k])*Constants.sigma_T / (cosmo->H_of_x(x_array_tau_reversed[k]))) * exp(-solution_tau[k][0]); //@@@
   tau_[j] = solution_tau[k][0];
 
-  // @@@
-  // g_tilde[j] = - (Constants.c*ne_of_x(x_array[j])*Constants.sigma_T / (cosmo->H_of_x(x_array[j])))*exp(solution_tau[j][0]);
-  // tau_[j] = solution_tau[j][0] ;
+  // PRINTING OUT AS WE GO
+  // if (j%4000 == 0){ 
+  //   std::cout << "Check tau loop " << tau_[j] << "  g loop " << g_tilde[j]  << " x = " << x_array_tau_reversed[k] << " \n" ;
+  //   std::cout << "exp(tau) " << exp(tau_[j]) << "  deriv " << - (Constants.c*ne_of_x(x_array_tau_reversed[k])*Constants.sigma_T / (cosmo->H_of_x(x_array_tau_reversed[k])))  << "\n" <<" \n" ;
+  //   }
 
-  if (j%4000 == 0){ 
-    std::cout << "Check tau loop " << tau_[j] << " ne " << ne_of_x(x_array_tau_reversed[k]) << " x = " << x_array_tau_reversed[k] << " \n" ;
-    // std::cout << "Check tau loop " << tau_[j] << " deriv = " << - (Constants.c*ne_of_x(x_array[j])*Constants.sigma_T / (cosmo->H_of_x(x_array[j]))) << " ne " << ne_of_x(x_array[j]) << " x = " << x_array[j] << " \n" ;
-    }
   } 
-  //@@@
-  std::cout << "c = " << Constants.c  << " sigma_T = " << Constants.sigma_T << " Hp(0) = " << cosmo->Hp_of_x(x_array[npts])  << " \n" ;
-  
   
   g_tilde_of_x_spline.create(x_array, g_tilde, "g");
   tau_of_x_spline.create(x_array, tau_, "tau");
@@ -401,6 +408,25 @@ void RecombinationHistory::solve_for_optical_depth_tau(){
     dg_tildedx[i] = exp(-tau_of_x(x_array[i])) * (dtaudx_of_x(x_array[i])*dtaudx_of_x(x_array[i]) - ddtauddx_of_x(x_array[i])); // ***
   }
   dg_tildedx_of_x_spline.create(x_array, dg_tildedx, "dg_tildedx"); 
+
+
+  // COMPUTING THE SOUND HORIZON
+  Vector s(npts);
+  
+  
+  for (size_t i = 0; i < npts +1; i++){
+
+    double OmegaB = cosmo -> get_OmegaB(x_array[i]);
+    double OmegaR = cosmo -> get_OmegaR(x_array[i]);
+    double R = 4.0*OmegaR/(3.0*OmegaB*exp(x_array[i]));
+
+    double cs = Constants.c * sqrt( R / ( 3.0 + 3.0*R )  );
+
+    s[i] = cs/(cosmo -> Hp_of_x(x_array[i]));
+
+  }
+  
+  sound_horizon_of_x_spline.create(x_array, s, "s");
 
 }
 
@@ -425,11 +451,11 @@ double RecombinationHistory::g_tilde_of_x(double x) const{
 }
 
 double RecombinationHistory::dgdx_tilde_of_x(double x) const{
-  return dg_tildedx_of_x_spline;
+  return dg_tildedx_of_x_spline(x);
 }
 
 double RecombinationHistory::ddgddx_tilde_of_x(double x) const{
-  return dg_tildedx_of_x_spline.deriv_x(x);;
+  return dg_tildedx_of_x_spline.deriv_x(x);
 }
 
 double RecombinationHistory::Xe_of_x(double x) const{
@@ -444,6 +470,15 @@ double RecombinationHistory::get_Yp() const{
   return Yp;
 }
 
+
+// I REALIZED WHILE WRITING THAT I HAVE MISINTERPRETEDED THIS FUNCTION AND NEED TO REDO THIS ***
+double RecombinationHistory::sound_horizon_of_x(double x) const{
+  return sound_horizon_of_x_spline(x);
+}
+
+double RecombinationHistory::Xe_of_x_Saha(double x) const{
+  return Xe_of_Saha(x);
+}
 //====================================================
 // Print some useful info about the class
 //====================================================
@@ -453,6 +488,10 @@ void RecombinationHistory::info() const{
   std::cout << "Yp:          " << Yp          << "\n";
   std::cout <<  "Tau(0) = " <<  tau_of_x(0.0)  << "\n";
   std::cout <<  "Tau(-18) = " <<  tau_of_x(-18.0)  << "\n";
+  std::cout <<  "gtilde(-7) = " <<  g_tilde_of_x(-7.0)  << "\n";
+  std::cout <<  "gtilde(-6) = " <<  g_tilde_of_x(-6.0)  << "\n";
+  std::cout <<  "s(-6.98462) = " <<  sound_horizon_of_x(-6.98462)  << "\n";
+  //-6.98462
 
 
   std::cout << std::endl;
@@ -480,6 +519,11 @@ void RecombinationHistory::output(const std::string filename) const{
     fp << g_tilde_of_x(x)      << " ";
     fp << dgdx_tilde_of_x(x)   << " ";
     fp << ddgddx_tilde_of_x(x) << " ";
+
+    fp << sound_horizon_of_x(x) << " ";
+
+    fp << Xe_of_x_Saha(x) << " ";
+
     fp << "\n";
   };
   std::for_each(x_array.begin(), x_array.end(), print_data);

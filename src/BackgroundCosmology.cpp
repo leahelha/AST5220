@@ -343,5 +343,12 @@ void BackgroundCosmology::output(const std::string filename) const{
     fp <<"\n";
   };
   std::for_each(x_array.begin(), x_array.end(), print_data);
+  std::cout << "t_decoupled " << t_of_x(-6.98462) / (60.*60.*24*365*1e6) << " Myr" << "\n";
+  // -0.449561
+  std::cout << "t_Saha " << t_of_x(-7.14033) / (60.*60.*24*365*1e6) << " Myr" << "\n";
+  //  -6.98822
+  std::cout << "t_re " << t_of_x(-6.98822) / (60.*60.*24*365*1e6) << " Myr" << "\n";
+
+  std::cout << "\n";
 }
 
