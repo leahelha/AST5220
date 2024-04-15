@@ -245,7 +245,7 @@ std::pair<double,double> RecombinationHistory::electron_fraction_from_saha_equat
   // std::cout << "C =  " << 4.0/Xe_saha_C << "\n";
 
   if (4.0/Xe_saha_C < 0.001){ 
-    Xe = (Xe_saha_C/2.0) * (2.0/Xe_saha_C );  // This is just 1
+    Xe = 1.0; //(Xe_saha_C/2.0) * (2.0/Xe_saha_C );  // This is just 1
     // std::cout << "C =  " << 4.0/Xe_saha_C << "\n";
   } 
   else{
@@ -443,7 +443,7 @@ double RecombinationHistory::dtaudx_of_x(double x) const{
 }
 
 double RecombinationHistory::ddtauddx_of_x(double x) const{ 
-  return dtaudx_of_x_spline.deriv_x(x);
+  return dtaudx_of_x_spline.deriv_x(x);    // *** This gives two small bumps between x = -8 and x=-7 when npts is 40 000
 }
 
 double RecombinationHistory::g_tilde_of_x(double x) const{

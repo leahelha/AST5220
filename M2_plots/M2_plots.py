@@ -26,6 +26,7 @@ void RecombinationHistory::output(const std::string filename) const{
     fp << ddgddx_tilde_of_x(x) << " ";
 
     fp << sound_horizon_of_x(x) << " ";
+    fp << Xe_of_x_Saha(x) << " ";
 
     fp << "\n";
   };
@@ -43,7 +44,7 @@ dgtilde = data[:, 7]
 ddgtilde = data[:, 8]
 
 
-
+print(f'Freeze out: Xe = {Xe[-1]}')
 
 
 """ Finding the x time of last scattering """
@@ -114,50 +115,56 @@ x_re = -6.98822, z_re = 1082.790610938193
 
 """
 
-
+""" PLOT OF TAU AND ITS DERIVATIVES """
 plt.figure()
 plt.xlim(-9, -4)
+plt.ylim(10**(-5), 10**5, 10**1)
 plt.yscale('log')
 plt.plot(x, ddtau, color='firebrick', linestyle=':', label=r"$\tau''(x)$")
 plt.plot(x, tau, color='sandybrown', linestyle='-', label=r"$\tau (x)$")
 plt.plot(x, -dtau, color='darkorange', linestyle='--', label=r"-$\tau'(x)$")
-plt.axvline(x=x_decoupled, color='magenta', linestyle='-', label="Decoupling")  # Adding vertical line at x_decoupled
-plt.axvline(x=x_re, color='black', linestyle='dashdot', label="Recombination")  # Adding vertical line at x_re
-plt.axvline(x=x_Saha, color='purple', linestyle='dashdot', label="Saha")  # Adding vertical line at x_Saha
+plt.axvline(x=x_decoupled, color='magenta', linestyle='-', label="Last scattering", alpha=0.3)  # Adding vertical line at x_decoupled
+plt.axvline(x=x_re, color='black', linestyle='dashdot', label="Recombination", alpha=0.4)  # Adding vertical line at x_re
+plt.axhline(y=1, color='grey', linestyle='solid', alpha=0.3)  # Adding vertical line at x_Saha
 plt.legend()
 plt.xlabel("$x$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+# plt.grid('True')
 plt.savefig("./Figs/M2/Taus_vs_x.pdf")
-plt.show()
 
 
-plt.figure(figsize=(10, 6))  # Specifies the figure size for the third plot
+""" PLOT OF G_TILDE AND DERIVATIVES """
+plt.figure()  # Specifies the figure size for the third plot
 plt.xlim(-7.8, -6)
 plt.plot(x, ddgtilde/100, color='darkgreen', linestyle=':', label=r'$\frac{d^2\tilde{g}}{dx^2}(x) /100$')
 plt.plot(x, dgtilde/10, color='olive', linestyle='--', label=r'$\frac{d\tilde{g}}{dx}(x)/ 10$')
 plt.plot(x, gtilde, color='yellowgreen', linestyle='-', label=r'$\tilde{g}(x)$')
-plt.axvline(x=x_decoupled, color='magenta', linestyle='-', label="Decoupling")  # Adding vertical line at x_decoupled
-plt.axvline(x=x_re, color='black', linestyle='dashdot', label="Recombination")  # Adding vertical line at x_re
-plt.axvline(x=x_Saha, color='purple', linestyle='dashdot', label="Saha")  # Adding vertical line at x_Saha
+plt.axvline(x=x_decoupled, color='magenta', linestyle='-', label="Last scattering", alpha=0.3)  # Adding vertical line at x_decoupled
+plt.axvline(x=x_re, color='black', linestyle='dashdot', label="Recombination", alpha=0.4)  # Adding vertical line at x_re
+# plt.axvline(x=x_Saha, color='purple', linestyle='dashdot', label="Saha recombination", alpha=0.3)  # Adding vertical line at x_Saha
 plt.xlabel("$x$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.legend()
 plt.savefig("./Figs/M2/Gtilde_all.pdf")
-plt.show()
 
 
-plt.xlim(-10,0)
+""" PLOT OF X_e """
+plt.figure()
+plt.xlim(-9,-3)
 plt.yscale("log")
 plt.plot(x, Xe, color='darkred')
-plt.axvline(x=x_decoupled, color='magenta', linestyle='-', label="Decoupling")  # Adding vertical line at x_decoupled
-plt.axvline(x=x_re, color='black', linestyle='dashdot', label="Recombination")  # Adding vertical line at x_re
-plt.axvline(x=x_Saha, color='purple', linestyle='dashdot', label="Saha")  # Adding vertical line at x_Saha
+plt.plot(x, Xe_Saha, color='salmon', linestyle='--', label="Saha")
+plt.axvline(x=x_decoupled, color='magenta', linestyle='-', label="Last scattering", alpha=0.3)  # Adding vertical line at x_decoupled
+plt.axvline(x=x_re, color='black', linestyle='dashdot', label="Recombination", alpha=0.4)  # Adding vertical line at x_re
+plt.axvline(x=x_Saha, color='purple', linestyle='dashdot', label="Saha recombination", alpha=0.3)  # Adding vertical line at x_Saha
 # plt.axhline(y=, color='dodgerblue', linestyle='dashdot', label="Freeze out")  # Adding horizontal line at Xe=0
 plt.xlabel("$x$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.ylabel("$X_e$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+plt.grid('True')
 plt.legend()
 plt.savefig("./Figs/M2/Xe_vs_x.pdf")
+plt.show()
 
 
-
+""" 
 plt.figure(figsize=(10, 6))  # Specifies the figure size for the first plot
 plt.xlim(-12, 0)
 plt.plot(x, gtilde, label=r'$\tilde{g}(x)$')
@@ -188,3 +195,4 @@ plt.ylabel(r'$\frac{d^2\tilde{g}}{dx^2}(x)$')
 # plt.title(r'Plot of $\frac{d^2\tilde{g}}{dx^2}$ vs. x')
 plt.legend()
 plt.savefig("./Figs/M2/DdGtilde_vs_x.pdf")
+"""
