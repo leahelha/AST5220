@@ -38,6 +38,14 @@ void Perturbations::integrate_perturbations(){
   // quadratic or a logarithmic spacing
   //===================================================================
   Vector k_array(n_k);
+  
+  double k_min_log = log(k_min);
+  double k_max_log = log(k_max);
+
+  Vector log_k_array = Utils::linspace(k_min_log, k_max_log, n_k);
+  for(int k = 0; k < n_k; k++){
+    k_array[k] = exp(log_k_array[k]);
+  }
 
   // Loop over all wavenumbers
   for(int ik = 0; ik < n_k; ik++){
@@ -53,6 +61,7 @@ void Perturbations::integrate_perturbations(){
 
     // Find value to integrate to
     double x_end_tight = get_tight_coupling_time(k);
+    break; // *** @@@ BREAKING
 
     //===================================================================
     // TODO: Tight coupling integration
@@ -63,6 +72,14 @@ void Perturbations::integrate_perturbations(){
 
     // Set up initial conditions in the tight coupling regime
     auto y_tight_coupling_ini = set_ic(x_start, k);
+    double *Theta = &y_tight_coupling_ini[Constants.ind_start_theta_tc];
+
+    // std::cout << "k = " << k << "\n"; 
+    // for(auto & v : y_tight_coupling_ini){
+    //   std::cout << v << "\n";
+    // }
+
+    // std::cout << y_tight_coupling_ini.back() << "\n"; // GIVES 0
 
     // The tight coupling ODE system
     ODEFunction dydx_tight_coupling = [&](double x, const double *y, double *dydx){
@@ -70,11 +87,11 @@ void Perturbations::integrate_perturbations(){
     };
 
     // Integrate from x_start -> x_end_tight
-    // ...
-    // ...
-    // ...
-    // ...
-    // ...
+    Vector x_tc = Utils::linspace(x_start, x_end_tight, n_k); // *** n_k is same points as log_k array
+
+    ODESolver y_tight_coupling;
+    y_tight_coupling.solve(dydx_tight_coupling, x_tc, y_tight_coupling_ini);  
+    auto solution_y_tight_coupling = y_tight_coupling.get_data();
 
     //====i===============================================================
     // TODO: Full equation integration
@@ -163,25 +180,37 @@ Vector Perturbations::set_ic(const double x, const double k) const{
   double *Theta        = &y_tc[Constants.ind_start_theta_tc];
   double *Nu           = &y_tc[Constants.ind_start_nu_tc];
 
+  double Hp           = cosmo -> Hp_of_x(x);
+  double dtau           = rec -> dtaudx_of_x(x);
   //=============================================================================
   // TODO: Set the initial conditions in the tight coupling regime
   //=============================================================================
-  // ...
-  // ...
+  double f_nu = 0.0;
+  double Psi = - 1.0/ ( 3.0/2.0 + (2.0*f_nu)/5.0  );
 
   // SET: Scalar quantities (Gravitational potential, baryons and CDM)
-  // ...
-  // ...
+  Phi = -(1.0 + (2.0*f_nu)/5.0)*Psi;
+
+  delta_cdm = -3.0/2.0 * Psi;
+  delta_b = delta_cdm;
+
+  v_cdm = -(Constants.c * k)/(2.0*Hp) * Psi;
+  v_b = v_cdm;
+
 
   // SET: Photon temperature perturbations (Theta_ell)
-  // ...
-  // ...
+  Theta[0] = -1.0/2.0 * Psi;
+  Theta[1] = (Constants.c * k)/(6.0*Hp)*Psi;
 
-  // SET: Neutrino perturbations (N_ell)
-  if(neutrinos){
-    // ...
-    // ...
-  }
+  // We dont consider Theta polarization
+  Theta[2] =  -(20.0*Constants.c)/(45.0 *Hp *dtau )*Theta[1];
+
+
+  // // SET: Neutrino perturbations (N_ell)
+  // if(neutrinos){
+  //   // ...
+  //   // ...
+  // }
 
   return y_tc;
 }
@@ -278,10 +307,24 @@ double Perturbations::get_tight_coupling_time(const double k) const{
   //=============================================================================
   // TODO: compute and return x for when tight coupling ends
   // Remember all the three conditions in Callin
-  //=============================================================================
-  // ...
-  // ...
 
+  // Condition 1: |k/(Hτ′)| < 1/10
+  // Condition 2: |τ′| > 10
+  // Condition 3: time x must be before Recombination
+  //=============================================================================
+  Vector x_array = Utils::linspace(x_start, x_end, n_k); // *** n_k same as linspace for the k_log
+  
+  for (double x : x_array){
+    double Hp = cosmo -> Hp_of_x(x);
+    double dtau = rec -> dtaudx_of_x(x);
+    if ( abs(k/(Hp*dtau)) < (1.0/10.0) && dtau > 10.0){
+      x_tight_coupling_end = x;
+      }
+  }
+  
+  std::cout << "x tight coupling " << x_tight_coupling_end << "\n";
+ 
+  
   return x_tight_coupling_end;
 }
 
@@ -379,18 +422,43 @@ int Perturbations::rhs_tight_coupling_ode(double x, double k, const double *y, d
   double *dThetadx        = &dydx[Constants.ind_start_theta_tc];
   double *dNudx           = &dydx[Constants.ind_start_nu_tc];
 
+  double Hp           = cosmo -> Hp_of_x(x);
+  double dtau         = rec -> dtaudx_of_x(x);
+  double eta          = cosmo -> eta_of_x(x);
+
+
+  double h          = cosmo -> get_h();
+  const double H0          = Constants.H0_over_h*h;
+  double H02 = pow(H0, 2);
+
+  const double a           = exp(x);
+  double Pi = Theta[2];
+  
+
   //=============================================================================
   // TODO: fill in the expressions for all the derivatives
   //=============================================================================
 
   // SET: Scalar quantities (Phi, delta, v, ...)
-  // ...
-  // ...
-  // ...
-
+  double Psi = - Phi - (12.0*H02)/(pow(Constants.c, 2) * pow(k, 2) * pow(a, 2));
+  
   // SET: Photon multipoles (Theta_ell)
-  // ...
-  // ...
+  double ck_over_Hp = Constants.c*k/Hp;
+
+  dThetadx[0] = -ck_over_Hp * Theta[1] - dPhidx ;
+  dThetadx[1] = -(1.0/3.0) * ck_over_Hp * Theta[0] - (2.0/3.0)*ck_over_Hp*Theta[2] + (1.0/3.0)*ck_over_Hp*Psi * dtau*(Theta[1]*(1.0/3.0)*v_b );
+  dThetadx[2] = (2.0/(2.0*2.0+1.0))*ck_over_Hp*Theta[2-1] - (2.0 +1)/(2.0*2.0 + 1.0)*ck_over_Hp*Theta[2+1] + dtau*(Theta[2]-(1.0/10.0)*Pi*1); // Kroenecker delta = 1
+
+
+  if (n_ell_theta_tc>2){ 
+    // double l = n_ell_neutrinos_tc + 2; // *** Might need to define l as a double
+    for(int l=3; l<n_ell_theta_tc; l++){
+      dThetadx[l] = (l/(2.0*l+1.0))*ck_over_Hp*Theta[l-1] - (l +1)/(2.0*l + 1.0)*ck_over_Hp*Theta[l+1] + dtau*(Theta[l]-(1.0/10.0)*Pi*0.0); // Kroenecker delta = 0
+    }
+  }
+
+  dThetadx[n_ell_neutrinos_tc] =  ck_over_Hp*Theta[n_ell_neutrinos_tc-1] - Constants.c*((n_ell_neutrinos_tc+1.0)/(Hp*eta)*Theta[n_ell_neutrinos_tc]) + dtau * Theta[n_ell_neutrinos_tc];
+  
 
   // SET: Neutrino mutlipoles (Nu_ell)
   if(neutrinos){
