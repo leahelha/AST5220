@@ -16,12 +16,15 @@ Perturbations::Perturbations(
 //====================================================
 
 void Perturbations::solve(){
-
+  
   // Integrate all the perturbation equation and spline the result
   integrate_perturbations();
 
+
+  
   // Compute source functions and spline the result
   compute_source_functions();
+  
 }
 
 //====================================================
@@ -49,6 +52,7 @@ void Perturbations::integrate_perturbations(){
 
   Vector x_array = Utils::linspace(x_start, x_end, n_x);
 
+  Ve
 
   // Loop over all wavenumbers
   for(int ik = 0; ik < n_k; ik++){
@@ -91,16 +95,16 @@ void Perturbations::integrate_perturbations(){
 
     
     // The tight coupling ODE system
-    int count_tc = 0;
     ODEFunction dydx_tight_coupling = [&](double x, const double *y, double *dydx){
-      count_tc += 1;
-      std::cout << "count tc " << count_tc << " x size " << x << " y " << y << "\n";
       return rhs_tight_coupling_ode(x, k, y, dydx);
     };
+
     // std::cout << "count tc regime" << count_tc << " idx_end_tc " << idx_end_tc << "\n";
+
     int n_x_tc = idx_end_tc;
     // Integrate from x_start -> x_end_tight
     Vector x_tc = Utils::linspace(x_start, x_array[idx_end_tc], n_x_tc); 
+
 
     Vector vector_y_tc_ini {y_tight_coupling_ini};
     ODESolver ode_y_tight_coupling;
@@ -118,24 +122,20 @@ void Perturbations::integrate_perturbations(){
     // set_ic_after_tight_coupling : The IC after tight coupling ends
     // rhs_full_ode : The dydx for our coupled ODE system
     //===================================================================
-    int n_x_full = n_x - idx_end_tc +1; //*** +1 
+    int n_x_full = n_x - idx_end_tc +1; //*** +1 for 1 index overlap 
     // Integrate from x_end_tight -> x_end
     Vector x_full = Utils::linspace(x_array[idx_end_tc], x_end, n_x_full);
+
 
     // Set up initial conditions (y_tight_coupling is the solution at the end of tight coupling)
     Vector y_tight_coupling = solution_y_tight_coupling.back(); 
     auto y_full_ini = set_ic_after_tight_coupling(y_tight_coupling, x_end_tight, k); 
 
-   
+
     // The full ODE system
-    int count = 0;
     ODEFunction dydx_full = [&](double x, const double *y, double *dydx){
-      // std::cout << "COUNT = " << count << " x size " << x << " y  " << y << "\n"; 
-      count +=1;
       return rhs_full_ode(x, k, y, dydx);
     };
-
-     
 
     ODESolver ode_y_full;
     ode_y_full.solve(dydx_full, x_full, y_full_ini);
@@ -170,9 +170,21 @@ void Perturbations::integrate_perturbations(){
   //=============================================================================
   // TODO: Make all splines needed: Theta0,Theta1,Theta2,Phi,Psi,...
   //=============================================================================
-  // ...
-  // ...
-  // ...
+    // Spline2D delta_cdm_spline{"delta_cdm_spline"};
+    // Spline2D delta_b_spline{"delta_b_spline"};
+    // Spline2D v_cdm_spline{"v_cdm_spline"};
+    // Spline2D v_b_spline{"v_b_spline"};
+    // Spline2D Phi_spline{"Phi_spline"};
+    // Spline2D Pi_spline{"Pi_spline"};
+    // Spline2D Psi_spline{"Psi_spline"};
+
+    // // e.g. Theta_spline = std::vector<Spline2D>(n_ell_theta); before using it
+    // std::vector<Spline2D> Theta_spline;
+    // std::vector<Spline2D> Theta_p_spline;
+    // std::vector<Spline2D> Nu_spline;
+
+    delta_cdm_spline.create
+    
 }
 
 //====================================================
@@ -230,13 +242,6 @@ Vector Perturbations::set_ic(const double x, const double k) const{
 
   // We dont consider Theta polarization
   Theta[2] =  -(20.0 * Constants.c)/(45.0 * Hp * dtau ) * Theta[1];
-
-
-  // // SET: Neutrino perturbations (N_ell)
-  // if(neutrinos){
-  //   // ...
-  //   // ...
-  // }
 
   return y_tc;
 }
@@ -375,12 +380,10 @@ void Perturbations::compute_source_functions(){
   Utils::StartTiming("source");
 
   //=============================================================================
-  // TODO: Make the x and k arrays to evaluate over and use to make the splines
+  // Making the x and k arrays to evaluate over and use to make the splines
   //=============================================================================
-  // ...
-  // ...
-  Vector k_array;
-  Vector x_array;
+  Vector k_array(n_k);
+  Vector x_array(n_x);
 
   // Make storage for the source functions (in 1D array to be able to pass it to the spline)
   Vector ST_array(k_array.size() * x_array.size());
@@ -466,9 +469,9 @@ int Perturbations::rhs_tight_coupling_ode(double x, double k, const double *y, d
   double dHp = cosmo->dHpdx_of_x(x);
   double H = cosmo->H_of_x(x);
   double c = Constants.c;
-  double h          = cosmo -> get_h();
+  double h = cosmo -> get_h();
 
-  const double H0          = Constants.H0_over_h*h;
+  const double H0  = Constants.H0_over_h*h;
   double H02 = pow(H0, 2);
   
   
@@ -505,9 +508,7 @@ int Perturbations::rhs_tight_coupling_ode(double x, double k, const double *y, d
   dv_cdmdx = -v_cdm - ck_Hp*Psi;
   
 
-  // SET: Photon multipoles (Theta_ell)
-  
- 
+
   
   // Tight coupling specific 
   double q1 = -( (1.0 - R)*dtau + (1.0 + R)*ddtau )*(3.0*Theta[1] + v_b) -ck_Hp*Psi + (1.0+dHp/Hp)*ck_Hp*(-Theta[0]+2.0*Theta2) - ck_Hp*dThetadx[0];
@@ -518,13 +519,7 @@ int Perturbations::rhs_tight_coupling_ode(double x, double k, const double *y, d
 
   dThetadx[1] = (q - dv_bdx)/3.0 ;
 
-  // // SET: Scalar quantities (Phi, delta, v, ...)
-  // double Psi = - Phi - (12.0*H02)/(pow(Constants.c, 2) * pow(k, 2) * pow(a, 2));
-  
-  // // SET: Photon multipoles (Theta_ell)
-  // Theta[2] = - 20.0*ck_Hp/(45.0*dtau) *Theta[1];
-
-
+  // SET: Photon multipoles (Theta_ell)
   // if (n_ell_theta_tc>2){ 
   //   // double l = n_ell_neutrinos_tc + 2; // *** Might need to define l as a double
   //   for(int l=3; l<n_ell_theta_tc; l++){
@@ -689,10 +684,10 @@ void Perturbations::info() const{
   std::cout << "Info about perturbations class:\n";
   std::cout << "x_start:       " << x_start                << "\n";
   std::cout << "x_end:         " << x_end                  << "\n";
-  std::cout << "n_x:     " << n_x              << "\n";
+  std::cout << "n_x:           " << n_x                    << "\n";
   std::cout << "k_min (1/Mpc): " << k_min * Constants.Mpc  << "\n";
   std::cout << "k_max (1/Mpc): " << k_max * Constants.Mpc  << "\n";
-  std::cout << "n_k:     " << n_k              << "\n";
+  std::cout << "n_k:           " << n_k                    << "\n";
   if(Constants.polarization)
     std::cout << "We include polarization\n";
   else

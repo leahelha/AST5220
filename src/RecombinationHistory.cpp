@@ -177,7 +177,7 @@ void RecombinationHistory::solve_number_density_electrons(){
   }
 
   //=============================================================================
-  // TODO: Spline the result. Implement and make sure the Xe_of_x, ne_of_x 
+  // Spline the result. Implement and make sure the Xe_of_x, ne_of_x 
   // functions are working
   //=============================================================================
   
