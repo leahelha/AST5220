@@ -1,8 +1,8 @@
 #include"Perturbations.h"
 
-//====================================================
+//===============================================================================
 // Constructors
-//====================================================
+//===============================================================================
 
 Perturbations::Perturbations(
     BackgroundCosmology *cosmo, 
@@ -11,9 +11,9 @@ Perturbations::Perturbations(
   rec(rec)
 {}
 
-//====================================================
+//===============================================================================
 // Do all the solving
-//====================================================
+//===============================================================================
 
 void Perturbations::solve(){
   
@@ -30,19 +30,19 @@ void Perturbations::solve(){
   
 }
 
-//====================================================
+//===============================================================================
 // The main work: integrate all the perturbations
 // and spline the results
-//====================================================
+//===============================================================================
 
 void Perturbations::integrate_perturbations(){
   Utils::StartTiming("integrateperturbation");
 
-  //===================================================================
+  //==============================================================================================
   // TODO: Set up the k-array for the k's we are going to integrate over
   // Start at k_min end at k_max with n_k points with either a
   // quadratic or a logarithmic spacing
-  //===================================================================
+  //==============================================================================================
   Vector k_array(n_k);
   Vector x_array = Utils::linspace(x_start, x_end, n_x);
   
@@ -87,12 +87,12 @@ void Perturbations::integrate_perturbations(){
     }
     
 
-    //===================================================================
+    //==============================================================================================
     // TODO: Tight coupling integration
     // Remember to implement the routines:
     // set_ic : The IC at the start
     // rhs_tight_coupling_ode : The dydx for our coupled ODE system
-    //===================================================================
+    //==============================================================================================
 
     // Set up initial conditions in the tight coupling regime
     auto y_tight_coupling_ini = set_ic(x_start, k);
@@ -121,12 +121,12 @@ void Perturbations::integrate_perturbations(){
     auto solution_y_tight_coupling = ode_y_tight_coupling.get_data();
     // std::cout << Theta[0] << " <- THETA tc" << "\n";
     
-    //===================================================================
+    //==============================================================================================
     // TODO: Full equation integration
     // Remember to implement the routines:
     // set_ic_after_tight_coupling : The IC after tight coupling ends
     // rhs_full_ode : The dydx for our coupled ODE system
-    //===================================================================
+    //==============================================================================================
     int n_x_full = n_x - idx_end_tc +1; //*** +1 for 1 index overlap 
     // Integrate from x_end_tight -> x_end
     Vector x_full = Utils::linspace(x_array[idx_end_tc], x_end, n_x_full);
@@ -151,14 +151,14 @@ void Perturbations::integrate_perturbations(){
     
     // std::cout << Theta[0] << " <- THETA full" << "\n";
     
-    //===================================================================
+    //==============================================================================================
     // TODO: remember to store the data found from integrating so we can
     // spline it below
-    //===================================================================
-    // std::cout << "HEREEEE" << "\n";
+    //==============================================================================================
+
     // Tight coupling regime
     
-    for (int ix = 0; ix <idx_end_tc  ; ix ++){
+    for (int ix = 0; ix <idx_end_tc; ix ++){  
       int idx = ix + n_x*ik;
       auto y = solution_y_tight_coupling[ix];
 
@@ -187,7 +187,7 @@ void Perturbations::integrate_perturbations(){
       double dtau = rec->dtaudx_of_x(x);
 
       // Other
-      
+
 
       // SET: Photon temperature perturbations (Theta_ell)
       f_Theta[0][idx] = Theta[0];
@@ -211,7 +211,7 @@ void Perturbations::integrate_perturbations(){
     }
    
    // Full system
-   for (int ix = idx_end_tc ; ix < n_x; ix ++){
+   for (int ix = idx_end_tc ; ix < n_x_full; ix ++){
       int idx = ix + n_x*ik;
       auto y = solution_y_full[ix];
       int real_idx = ix - idx_end_tc + 1; // +1 overlap
@@ -240,7 +240,7 @@ void Perturbations::integrate_perturbations(){
       // Recombination variables
       double dtau = rec->dtaudx_of_x(x);
 
-      
+
       // SET: Photon temperature perturbations (Theta_ell)
       f_Theta[0][idx] = Theta[0];
       f_Theta[1][idx] = Theta[1];
@@ -252,12 +252,12 @@ void Perturbations::integrate_perturbations(){
 
     
 
-      // SET: Scalar quantities (Gravitational potental, baryons and CDM)
+      // // SET: Scalar quantities (Gravitational potental, baryons and CDM)
       f_Phi[idx] = Phi;
 
-      
-
       f_Psi[idx] = -Phi -(12.0/(pow(ck_Hp, 2)*a*a)) * (Omega_R*Theta[2]);
+
+
       f_delta_cdm[idx] = delta_cdm;
       f_delta_b[idx] = delta_b;
       f_v_cdm[idx] = v_cdm;
@@ -265,7 +265,7 @@ void Perturbations::integrate_perturbations(){
    }
   
 
-    //
+//===================================================================
     // To compute a 2D spline of a function f(x,k) the data must be given 
     // to the spline routine as a 1D array f_array with the points f(ix, ik) 
     // stored as f_array[ix + n_x * ik]
@@ -303,10 +303,9 @@ void Perturbations::integrate_perturbations(){
     // std::vector<Spline2D> Theta_spline;
     // std::vector<Spline2D> Theta_p_spline;
     // std::vector<Spline2D> Nu_spline;
-
+   //=============================================================================
     // delta_cdm_spline.create
 
-    
     delta_cdm_spline.create(k_array, x_array, f_delta_cdm, "delta_cdm_spline");
     delta_b_spline.create(k_array, x_array, f_delta_cdm, "delta_b_spline");
     v_cdm_spline.create(k_array, x_array, f_delta_cdm, "v_cdm_spline");
