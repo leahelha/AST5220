@@ -57,23 +57,23 @@ void BackgroundCosmology::solve(){
 
 
 
-  Vector eta_init = {1.0/Hp_of_x(x_start)};//{0.00}; COMMENTS CHANGED THIS
-  ODESolver ode;
-  ode.solve(detadx, x_array, eta_init);
-  auto solution = ode.get_data();
+  Vector eta_init = {Constants.c/Hp_of_x(x_start)};//{0.00}; COMMENTS CHANGED THIS
+  ODESolver eta_ode;
+  eta_ode.solve(detadx, x_array, eta_init);
+  auto eta_solution = eta_ode.get_data();
 
   // eta(today) i enheter av meter eta/c i Gyr
   // std::cout << solution.back()[0] / Constants.c / (60.*60.*24*365*1e9) << " Gyr";
 
-  size_t num_rows = solution.size();
-  size_t num_columns = (num_rows > 0) ? solution[0].size() : 0;
+  size_t num_rows = eta_solution.size();
+  size_t num_columns = (num_rows > 0) ? eta_solution[0].size() : 0;
 
   // Declare and initialize eta vector
   Vector eta(num_rows, 0.0); // Initialize with num_rows elements, all set to 0.0
 
   // Populate the eta vector with the first column of the solution
   for (size_t i = 0; i < num_rows; ++i) {
-    eta[i] = solution[i][0];
+    eta[i] = eta_solution[i][0];
   }
   // Print the shape
   //printf("Shape of the solution: %zu rows x %zu columns\n", num_rows, num_columns);
@@ -123,7 +123,6 @@ double BackgroundCosmology::H_of_x(double x) const{
 }
 
 double BackgroundCosmology::Hp_of_x(double x) const{
-
   // x = ln a -> a = e^x
   double Hp_of_x = exp(x) * H_of_x(x); 
 
@@ -262,6 +261,8 @@ double BackgroundCosmology::get_luminosity_distance_of_x(double x) const{
 double BackgroundCosmology::get_comoving_distance_of_x(double x) const{
 
   double eta_0 = eta_of_x(0.0);
+  // double eta_0 = Constants.c/Hp_of_x(x_start);
+  // double eta_0 = eta_of_x(Constants.x_start);
   double eta_ = eta_of_x(x);
 
   double Chi = eta_0 - eta_ ;

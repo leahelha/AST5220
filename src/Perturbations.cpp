@@ -61,7 +61,9 @@ void Perturbations::integrate_perturbations(){
   Vector f_Phi(n_k*n_x);
   Vector f_Psi(n_k*n_x);
 
+  // *** CANT FIND ONE THAT WORKS
   std::vector<Vector> f_Theta(Constants.n_ell_theta, Vector(n_k*n_x));
+  // f_Theta = std::vector<Spline2D>(n_ell_theta);
   
 
   // Loop over all wavenumbers
@@ -157,7 +159,6 @@ void Perturbations::integrate_perturbations(){
     //==============================================================================================
 
     // Tight coupling regime
-    
     for (int ix = 0; ix <idx_end_tc; ix ++){  
       int idx = ix + n_x*ik;
       auto y = solution_y_tight_coupling[ix];
@@ -173,6 +174,7 @@ void Perturbations::integrate_perturbations(){
       double *Nu              = &y[Constants.ind_start_nu_tc];
 
       double x = x_tc[ix];
+      // std::cout << "x is " << x <<"\n";
       double k = k_array[ik];
 
       // Cosmological parameters and variables
@@ -181,22 +183,19 @@ void Perturbations::integrate_perturbations(){
       double Hp = cosmo->Hp_of_x(x);
       double ck_Hp = c*k/Hp;
 
-      double Omega_R = cosmo->get_OmegaR(x); // For Psi
+      double Omega_R = cosmo->get_OmegaR(0.0); // For Psi
 
       // Recombination variables
       double dtau = rec->dtaudx_of_x(x);
 
       // Other
-
-
+      //***
       // SET: Photon temperature perturbations (Theta_ell)
       f_Theta[0][idx] = Theta[0];
       f_Theta[1][idx] = Theta[1];
       f_Theta[2][idx] = (-20.0*c*k)/(45.0*Hp*dtau)*Theta[1];
-
       // for( int l=3; l<n_ell_theta; l++){
       //   f_Theta[l] = -l/(2.0*l+1.0) * ck_Hp/dtau *Theta[l-1];
-
       // }
 
       // SET: Scalar quantities (Gravitational potental, baryons and CDM)
@@ -206,15 +205,17 @@ void Perturbations::integrate_perturbations(){
       f_delta_b[idx] = delta_b;
       f_v_cdm[idx] = v_cdm;
       f_v_b[idx] = v_b;
-
-
     }
-   
-   // Full system
-   for (int ix = idx_end_tc ; ix < n_x_full; ix ++){
+
+    
+    
+    // Full system 
+    for(int ix = idx_end_tc; ix < n_x; ix ++){
+      
       int idx = ix + n_x*ik;
+      
       auto y = solution_y_full[ix];
-      int real_idx = ix - idx_end_tc + 1; // +1 overlap
+      int real_idx = ix; //- idx_end_tc + 1; // +1 overlap
 
       // References to the quantities we are going to set
       double &delta_cdm       =  y[Constants.ind_deltacdm];
@@ -226,21 +227,27 @@ void Perturbations::integrate_perturbations(){
       double *Theta_p         = &y[Constants.ind_start_thetap];
       double *Nu              = &y[Constants.ind_start_nu];
 
-      double x = x_full[real_idx];
+      double x = x_array[ix];
       double k = k_array[ik];
 
       // Cosmological parameters and variables
+      // std::cout << "IDX " << idx  << " idx_end_tc " << idx_end_tc << " x IS " <<  x << "\n";
+      // std::cout << "The length of the vector is: " << f_Theta[0].size() << "\n";
+      
       double a = exp(x);
       double c = Constants.c;
+      
       double Hp = cosmo->Hp_of_x(x);
+      
       double ck_Hp = c*k/Hp;
 
-      double Omega_R = cosmo->get_OmegaR(x); // For Psi
-
+      double Omega_R = cosmo->get_OmegaR(0.0); // For Psi
+      
+ 
       // Recombination variables
-      double dtau = rec->dtaudx_of_x(x);
-
-
+      double dtau = rec->dtaudx_of_x(x); 
+      
+      
       // SET: Photon temperature perturbations (Theta_ell)
       f_Theta[0][idx] = Theta[0];
       f_Theta[1][idx] = Theta[1];
@@ -249,8 +256,6 @@ void Perturbations::integrate_perturbations(){
       for(int l=3; l<Constants.n_ell_theta; l++){
         f_Theta[l][idx] = -l/(2.0*l+1.0) * ck_Hp/dtau *Theta[l-1];
       }
-
-    
 
       // // SET: Scalar quantities (Gravitational potental, baryons and CDM)
       f_Phi[idx] = Phi;
@@ -262,10 +267,10 @@ void Perturbations::integrate_perturbations(){
       f_delta_b[idx] = delta_b;
       f_v_cdm[idx] = v_cdm;
       f_v_b[idx] = v_b;
-   }
+    }
   
 
-//===================================================================
+    //===================================================================
     // To compute a 2D spline of a function f(x,k) the data must be given 
     // to the spline routine as a 1D array f_array with the points f(ix, ik) 
     // stored as f_array[ix + n_x * ik]
@@ -315,10 +320,9 @@ void Perturbations::integrate_perturbations(){
 
     delta_cdm_spline.create(k_array, x_array, f_delta_cdm, "Phi_spline");
 
-    Theta_spline = std::vector<Spline2D>(Constants.n_ell_theta);
-    for(int l=0; l<Constants.n_ell_theta; l++){
-      Theta_spline[l].create(k_array, x_array, f_Theta[l], "Theta");
-    }
+    Spline2D Theta_spline;
+    // Theta_spline = std::vector<Spline2D>(Constants.n_ell_theta);
+    Theta_spline.create(k_array, x_array, f_Theta, "Theta");
     
 }
 

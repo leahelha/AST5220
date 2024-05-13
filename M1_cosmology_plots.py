@@ -128,8 +128,10 @@ plt.gca().add_patch(region2)
 plt.gca().add_patch(region3)
 
 #print(cosmo_x[-23])  # when x = 0
-plt.plot(cosmo_x[:-22], cosmo_eta_of_x[:-22]*cosmo_Hp[:-22]/const.c, label=r'$\frac{\eta(x)\mathcal{H}(x)}{c}$')
-plt.legend()
+# plt.plot(cosmo_x[:-22], cosmo_eta_of_x[:-22]*cosmo_Hp[:-22]/const.c, label=r'$\frac{\eta(x)\mathcal{H}(x)}{c}$')
+plt.plot(cosmo_x, cosmo_eta_of_x*cosmo_Hp/const.c)
+plt.title(r'$\frac{\eta(x)\mathcal{H}(x)}{c}$')
+# plt.legend()
 #plt.xlim(np.log(1/1+1089), 0)
 plt.xlabel("x")
 plt.savefig("Figs/Hp_eta_checks.pdf")
@@ -151,10 +153,11 @@ plt.savefig("Figs/cosmic_time_and_conformal_time.pdf")
 
 """ Hubble factor Hprime(x) """
 
-print(f"Hubble factor {cosmo_Hp[-23]*(100/(Mpc*1000))}")
+
+print(f"Hubble factor {cosmo_Hp[-1]*(1/(Mpc*100000))} fo x = {cosmo_x[-1]}")
 
 plt.figure()
-plt.plot(cosmo_x, cosmo_Hp*(100/(Mpc*1000)))
+plt.plot(cosmo_x, cosmo_Hp*(1/(Mpc*100000))) #(100/(Mpc*1000)))
 
 plt.yscale('log')
 #plt.xlim(-12, 0.1)

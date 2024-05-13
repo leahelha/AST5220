@@ -6,7 +6,7 @@ from scipy.stats import norm
 
 Gyr = 1/(60*60*24*365*1e9) # from s to Gyr
 Mpc = 3.24*10**(-23) # from m to Mpc
-Gpc = 3.24*10**(-25)
+Gpc = 3.24*10**(-26) # from m to Gpc
 
 cosmo = np.loadtxt("cosmology.txt")
 print(f"Shape of cosmo = {np.shape(cosmo)}")
@@ -59,11 +59,23 @@ betoule = np.loadtxt("Betoule_supernova.txt")
 
 
 z_cosmo = np.exp(-cosmo_x)-1
+print(f"z cosmo = {z_cosmo}")
 z_obs = betoule[:, 0]
 
 
 dL_obs = betoule[:, 1]
 error_obs = betoule[:, 2]
+
+"""
+X    Du har Gpc = 3.24*10**(-25) men 1m er 3.24*10^(-26) Gpc så det er en faktor av 10 feil her.  DONE
+
+Et annet problem her er at z-verdiene dine går fra rundt 0 til 10^9, mens du bare er interessert i z-verdier fra rundt 0 til rundt 1. 
+Ta å lag en separat rutine der du outputter dL dataene der du velger det z-området du vil ha og så printer dette. 
+Hvis du vil bruke dataene fra output() så må du sørge for å ha enormt mange punkter for å sørge for nok punkter i det intervallet 
+du vil ha og så må du sette x-range til å være det du er interessert i.
+
+"""
+
 
 """ Plot of luminosity distance for fiducial cosmology, observed sn data and our best fit results """
 # *** THIS IS NOT RIGHT
