@@ -12,10 +12,18 @@ int main(int argc, char **argv){
   // Parameters
   //=========================================================================
 
-  // Background parameters
-  double h           = 0.67;
+  // // Background parameters
+  // double h           = 0.67;
+  // double OmegaB      = 0.05;
+  // double OmegaCDM    = 0.267;
+  // double OmegaK      = 0.0;
+  // double Neff        = 0.0; //3.046; //***
+  // double TCMB        = 2.7255;
+
+ // Background parameters ***BACKGROUND COSMOLOGY FOR M3 COMPARISON
+  double h           = 0.7;
   double OmegaB      = 0.05;
-  double OmegaCDM    = 0.267;
+  double OmegaCDM    = 0.45;
   double OmegaK      = 0.0;
   double Neff        = 0.0; //3.046; //***
   double TCMB        = 2.7255;
@@ -72,6 +80,12 @@ int main(int argc, char **argv){
   // Output perturbation quantities
   double kvalue = 0.01 / Constants.Mpc;
   pert.output(kvalue, "perturbations_k0.01.txt");
+
+  double kvalue2 = 0.1 / Constants.Mpc;
+  pert.output(kvalue2, "perturbations_k0.1.txt");
+
+  double kvalue3 = 0.001 / Constants.Mpc;
+  pert.output(kvalue3, "perturbations_k0.001.txt");
   
   // Remove when module is completed
   return 0;
