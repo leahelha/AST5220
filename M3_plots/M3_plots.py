@@ -118,12 +118,13 @@ for k in k_list:
     Psi[i] = k[:, 5]
 
     delta_cdm[i] = k[:, 6]
-    print(f"LAST DELTA_CDM is {delta_cdm[i][-1]}")
+    
 
     v_cdm[i] = k[:, 7]
 
     delta_b[i] = k[:, 8]
     v_b[i] = k[:, 9]
+    
     # Pi[i] = k[:, 5] # BRUKES IKKE!!!
 
     # Source_T[i] = k[:, 6]
@@ -132,7 +133,6 @@ for k in k_list:
     # Source_T_500[i] = k[:, 9]
 
     i += 1
-
 
 
 
@@ -168,6 +168,7 @@ plt.legend()
 plt.title('Phi')
 plt.show()
 
+
 # for k in range(len(k_list)):
 #     plt.plot(x[k], Psi[k], label=f"k = {k_values[k]}")
 # plt.legend()
@@ -175,16 +176,16 @@ plt.show()
 # plt.show()
 
 for k in range(len(k_list)):
-    plt.plot(x[k], delta_cdm[k], label=f"delta_cdm k = {k_values[k]}")
-    plt.plot(x[k], delta_b[k], '--', label=f"delta_b k = {k_values[k]}")
+    plt.plot(x[k], abs(delta_cdm[k]), label=f"delta_cdm k = {k_values[k]}")
+    plt.plot(x[k], abs(delta_b[k]), '--', label=f"delta_b k = {k_values[k]}")
 plt.yscale('log')
 plt.legend()
 plt.title('delta_cdm and delta_b')
 plt.show()
 
 for k in range(len(k_list)):
-    plt.plot(x[k], v_cdm[k], label=f"v_cdm k = {k_values[k]}")
-    plt.plot(x[k], v_b[k], '--', label=f"v_b k = {k_values[k]}")
+    plt.plot(x[k], abs(v_cdm[k]), label=f"v_cdm k = {k_values[k]}")
+    plt.plot(x[k], abs(v_b[k]), '--', label=f"v_b k = {k_values[k]}")
 plt.yscale('log')
 plt.legend()
 plt.title('v_cdm and v_b')
