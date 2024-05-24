@@ -12,21 +12,21 @@ int main(int argc, char **argv){
   // Parameters
   //=========================================================================
 
-  // // Background parameters
-  // double h           = 0.67;
-  // double OmegaB      = 0.05;
-  // double OmegaCDM    = 0.267;
-  // double OmegaK      = 0.0;
-  // double Neff        = 0.0; //3.046; //***
-  // double TCMB        = 2.7255;
-
- // Background parameters ***BACKGROUND COSMOLOGY FOR M3 COMPARISON
-  double h           = 0.7;
+  // Background parameters
+  double h           = 0.67;
   double OmegaB      = 0.05;
-  double OmegaCDM    = 0.45;
+  double OmegaCDM    = 0.267;
   double OmegaK      = 0.0;
   double Neff        = 0.0; //3.046; //***
   double TCMB        = 2.7255;
+
+//  // Background parameters *** TOY BACKGROUND COSMOLOGY FOR M3 COMPARISON
+//   double h           = 0.7;
+//   double OmegaB      = 0.05;
+//   double OmegaCDM    = 0.45;
+//   double OmegaK      = 0.0;
+//   double Neff        = 0.0; //3.046; //***
+//   double TCMB        = 2.7255;
 
   // Recombination parameters
   double Yp          = 0; //= 0.245;
@@ -87,9 +87,12 @@ int main(int argc, char **argv){
   double kvalue3 = 0.001 / Constants.Mpc;
   pert.output(kvalue3, "perturbations_k0.001.txt");
   
-  // Remove when module is completed
-  return 0;
   
+  
+  // Power spectrum parameters
+  // double A_s = 2.1e-9;
+  // double n_s = 0.965;
+  // double kpivot_mpc = 0.05;
   //=========================================================================
   // Module IV
   //=========================================================================
@@ -99,7 +102,6 @@ int main(int argc, char **argv){
   power.output("cells.txt");
   
   // Remove when module is completed
-  return 0;
-
+  return 0.0;
   Utils::EndTiming("Everything");
 }

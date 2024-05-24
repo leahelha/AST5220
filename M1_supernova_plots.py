@@ -37,21 +37,29 @@ converged_data = data[200:]
 print(f"The shape of the converged data is {np.shape(converged_data)}\n")
 best_chi = np.argmin(converged_data[:, 0])
 
+
 best_fit_params = converged_data[best_chi, :]
 print(f"Best params from min chi^2 {best_fit_params}\n")
 
 
 selected_data = converged_data[converged_data[:, 0] < (best_fit_params[0] + 3.53)] #Data selected within 1sigma of the best fit
-sig2_data = converged_data[converged_data[:, 0] < (best_fit_params[0] + 0.267)] #Data selected within 2sigma of the best fit
-sig3_data = converged_data[converged_data[:, 0] < (best_fit_params[0] + 0.133)] #Data selected within 3sigma of the best fit
+sig2_data = converged_data[converged_data[:, 0]  < (best_fit_params[0] + 8.02)] #Data selected within 2sigma of the best fit
+sig3_data = converged_data[converged_data[:, 0] < (best_fit_params[0] + 14.16)] #Data selected within 3sigma of the best fit
 
 chi2 = selected_data[:, 0]
 h_selected = selected_data[:, 1]
 OmegaM_selected = selected_data[:, 2]
 OmegaK_selected = selected_data[:, 3]
 
-OmegaLambda_selected = 1 - (OmegaK_selected + OmegaM_selected)
+OmegaLambda_selected = 1 - (OmegaK_selected + OmegaM_selected) 
 
+OmegaM_s2 = sig2_data[:, 2]
+OmegaK_s2 = sig2_data[:, 3]
+OmegaLambda_s2 = 1 - (OmegaK_s2 + OmegaM_s2)
+
+OmegaM_s3 = sig3_data[:, 2]
+OmegaK_s3 = sig3_data[:, 3]
+OmegaLambda_s3 = 1 - (OmegaK_s3 + OmegaM_s3)
 
 """ dL plot with supernova best fit, fiducial cosmology and betouli observations """
 
@@ -80,24 +88,29 @@ du vil ha og så må du sette x-range til å være det du er interessert i.
 """ Plot of luminosity distance for fiducial cosmology, observed sn data and our best fit results """
 # *** THIS IS NOT RIGHT
 plt.figure()
-plt.plot(z_cosmo, cosmo_dL*Gpc/z_cosmo, label="Fiducial cosmology")
-plt.errorbar(z_obs, dL_obs, xerr=error_obs, fmt='o', color='blue', ecolor='red', capsize=0.5, label="Observed data")
+plt.plot(z_cosmo, cosmo_dL*Gpc, label="Fiducial cosmology")
+plt.errorbar(z_obs, dL_obs, yerr=error_obs, fmt='o', color='blue', ecolor='red', capsize=0.5, label="Observed data")
 plt.plot(chi2*Gpc, label="Best fit from MCMC")
-plt.title("This is not correct")
+plt.title("$d_L$")
+plt.xlabel('z')
+plt.ylabel('Gpc')
+plt.xscale('log')
+plt.xlim(0, 1.45)
+plt.ylim(3.5, 8)
 plt.legend()
-plt.savefig("Figs/sn_dL_plots.pdf")
+plt.savefig("Figs/sn_dL_plots")
 
 
 """ Confidence region 1sig, 2sig and 3sig """
 plt.figure()
-plt.scatter( OmegaLambda_selected, OmegaM_selected, label = "$1\sigma$")
-plt.scatter(1 -(sig2_data[:,2]+sig2_data[:,3]), sig2_data[:,2], label = "$2\sigma$")
-plt.scatter(1 -(sig3_data[:,2]+sig3_data[:,3]), sig3_data[:,2], label = "$3\sigma$")
-# *** wanna add line for flat universe
+plt.scatter(OmegaM_s3,  OmegaLambda_s3, label = "$3\sigma$")
+plt.scatter(OmegaM_s2,  OmegaLambda_s2, label = "$2\sigma$")
+plt.scatter(OmegaM_selected, OmegaLambda_selected,  label = "$1\sigma$")
+plt.plot((0,1), (1,0), color='black', linestyle = '--', label='Flat universe')
 plt.legend()
-plt.xlabel('OmegaM')
-plt.ylabel('OmegaLambda')
-plt.title('1$\sigma$ Confidence Region')
+plt.xlabel('$\Omega_M$')
+plt.ylabel('$\Omega_\Lambda$')
+plt.title('$\sigma$ Confidence Region')
 plt.savefig("Figs/sn_Confidence_region.pdf")
 
 
@@ -117,7 +130,7 @@ plt.xlabel('Parameter Value')
 plt.ylabel('Frequency')
 plt.legend()
 plt.title('Histogram of accepted h')
-plt.savefig("Figs/sn_Histogram_of_H_parameters.pdf")
+plt.savefig("Figs/sn_Histogram_of_H_parameters")
 
 
 # Compute the mean and standard deviation of the chain values
@@ -148,7 +161,7 @@ plt.xlabel('Parameter Value')
 plt.ylabel('Frequency')
 plt.legend()
 plt.title('Histogram of Parameters with Gaussian Fit')
-plt.savefig("Figs/sn_Histogram_of_omega_Gaussian.pdf")
+plt.savefig("Figs/sn_Histogram_of_omega_Gaussian")
 
 
 

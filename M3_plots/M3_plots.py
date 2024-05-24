@@ -137,59 +137,117 @@ for k in k_list:
 
 
 
+plt.figure()
+k_color = ['b', 'orange', 'green']
+i=0
+for k in range(len(k_list)):
+    
+    plt.plot(x[k], abs(delta_cdm[k]), color = f'{k_color[i]}', linestyle ='-',label=f"k = {k_values[k]}")
+    plt.plot(x[k], abs(delta_b[k]), color = f'{k_color[i]}', linestyle='--')
+    plt.plot(x[k], abs(4*Theta_0[k]), f'{k_color[i]}', linestyle ='-.', alpha=0.3)
+    i += 1
+plt.yscale('log')
+plt.legend()
+plt.title('$\delta_{cdm}$, $\delta_b$, and $\delta_{\gamma}$')
+plt.xlabel('x')
+plt.savefig('./Figs/M3/densities_pert.pdf')
 
+
+plt.figure()
+i = 0
+
+for k in range(len(k_list)):
+    plt.plot(x[k], abs(-3*Theta_1[k]), color = f'{k_color[i]}', linestyle='-.', alpha=0.3)
+    plt.plot(x[k], abs(v_cdm[k]), color = f'{k_color[i]}', linestyle ='-', label=f"k = {k_values[k]}")
+    plt.plot(x[k], abs(v_b[k]), color = f'{k_color[i]}', linestyle ='--' ) 
+    
+    i +=1
+plt.yscale('log')
+plt.legend()
+plt.title('$v_{cdm}$, $v_{b}$ and $v_{\gamma}$')
+plt.xlabel('x')
+plt.savefig('./Figs/M3/velocities_pert.pdf')
+
+
+plt.figure()
+for k in range(len(k_list)):
+    plt.plot(x[k], abs(-3*Theta_1[k]), label=f"k = {k_values[k]}", alpha = 0.8)    
+    i +=1
+plt.yscale('log')
+plt.legend()
+plt.title('$v_{\gamma} = -3\Theta_1$')
+plt.xlabel('x')
+plt.savefig('./Figs/M3/velocity_gamma.pdf')
+
+
+plt.figure()
+for k in range(len(k_list)):
+    plt.plot(x[k], abs(4*Theta_0[k]), label=f"k = {k_values[k]}")    
+    i +=1
+plt.yscale('log')
+plt.legend()
+plt.title('$\delta_{\gamma} = 4\Theta_0$')
+plt.xlabel('x')
+plt.savefig('./Figs/M3/delta_gamma.pdf')
+
+
+
+plt.figure()
 for k in range(len(k_list)):
     plt.plot(x[k], Theta_0[k], label=f"k = {k_values[k]}")
 plt.legend()
-plt.title('\Theta_0')
-plt.show()
+plt.title('$\Theta_0$')
+plt.xlabel('x')
+plt.savefig('./Figs/M3/Theta_0.pdf')
 
+
+plt.figure()
 for k in range(len(k_list)):
     plt.plot(x[k], Theta_1[k], label=f"k = {k_values[k]}")
 plt.legend()
-plt.title('\Theta_1')
-plt.show()
+plt.title('$\Theta_1$')
+plt.xlabel('x')
+plt.savefig('./Figs/M3/Theta_1.pdf')
 
-# for k in range(len(k_list)):
-#     plt.plot(x[k], 4*Theta_0[k], label=f"k = {k_values[k]}")
-# plt.legend()
-# plt.title('\delta_gamma = 4\Theta_0')
-# plt.show()
 
-# for k in range(len(k_list)):
-#     plt.plot(x[k], Psi[k]+Phi[k], label=f"k = {k_values[k]}")
-# plt.legend()
-# plt.title('Psi + Phi')
-# plt.show()
+plt.figure()
+for k in range(len(k_list)):
+    plt.plot(x[k], Theta_2[k], label=f"k = {k_values[k]}")
+plt.legend()
+plt.title('$\Theta_2$')
+plt.xlabel('x')
+plt.savefig('./Figs/M3/Theta_2.pdf')
 
+
+plt.figure()
+for k in range(len(k_list)):
+    plt.plot(x[k], Psi[k]+Phi[k], label=f"k = {k_values[k]}")
+plt.legend()
+plt.title('$\Psi + \Phi$')
+plt.xlabel('x')
+plt.savefig('./Figs/M3/psi_phi_sum.pdf')
+
+
+plt.figure()
 for k in range(len(k_list)):
     plt.plot(x[k], Phi[k], label=f"k = {k_values[k]}")
 plt.legend()
-plt.title('Phi')
-plt.show()
+plt.title('$\Phi$')
+plt.xlabel('x')
+plt.savefig('./Figs/M3/Phi.pdf')
 
 
+# plt.figure()
 # for k in range(len(k_list)):
 #     plt.plot(x[k], Psi[k], label=f"k = {k_values[k]}")
 # plt.legend()
-# plt.title('Psi')
-# plt.show()
+# plt.title('$\Psi$')
+# plt.xlabel('x')
+# plt.savefig('./Figs/M3/Phi')
 
-for k in range(len(k_list)):
-    plt.plot(x[k], abs(delta_cdm[k]), label=f"delta_cdm k = {k_values[k]}")
-    plt.plot(x[k], abs(delta_b[k]), '--', label=f"delta_b k = {k_values[k]}")
-plt.yscale('log')
-plt.legend()
-plt.title('delta_cdm and delta_b')
-plt.show()
 
-for k in range(len(k_list)):
-    plt.plot(x[k], abs(v_cdm[k]), label=f"v_cdm k = {k_values[k]}")
-    plt.plot(x[k], abs(v_b[k]), '--', label=f"v_b k = {k_values[k]}")
-plt.yscale('log')
-plt.legend()
-plt.title('v_cdm and v_b')
-plt.show()
+
+
 
 
 
@@ -234,4 +292,91 @@ for k, data in perturbations.items():
 
 # Now you can access any variable like so:
 # print(results['pert_k_S_Theta_0'])
+"""
+
+
+"""
+plt.figure()
+for k in range(len(k_list)):
+    plt.plot(x[k], Theta_0[k], label=f"k = {k_values[k]}")
+plt.legend()
+plt.title('$\Theta_0$')
+plt.xlabel('x')
+plt.savefig('./Figs/M3/toy_cosmology/Theta_0')
+
+
+plt.figure()
+for k in range(len(k_list)):
+    plt.plot(x[k], Theta_1[k], label=f"k = {k_values[k]}")
+plt.legend()
+plt.title('$\Theta_1$')
+plt.xlabel('x')
+plt.savefig('./Figs/M3/toy_cosmology/Theta_1')
+
+
+plt.figure()
+for k in range(len(k_list)):
+    plt.plot(x[k], 4*Theta_0[k], label=f"k = {k_values[k]}")
+plt.legend()
+plt.title('$\delta_{\gamma} = 4\Theta_0$')
+plt.xlabel('x')
+plt.savefig('./Figs/M3/toy_cosmology/4Theta_0')
+
+
+plt.figure()
+for k in range(len(k_list)):
+    plt.plot(x[k], Psi[k]+Phi[k], label=f"k = {k_values[k]}")
+plt.legend()
+plt.title('$\Psi + \Phi$')
+plt.xlabel('x')
+plt.savefig('./Figs/M3/toy_cosmology/psi_phi_sum')
+
+
+plt.figure()
+for k in range(len(k_list)):
+    plt.plot(x[k], Phi[k], label=f"k = {k_values[k]}")
+plt.legend()
+plt.title('$\Phi$')
+plt.xlabel('x')
+plt.savefig('./Figs/M3/toy_cosmology/Phi')
+
+
+plt.figure()
+for k in range(len(k_list)):
+    plt.plot(x[k], Psi[k], label=f"k = {k_values[k]}")
+plt.legend()
+plt.title('$\Psi$')
+plt.xlabel('x')
+plt.savefig('./Figs/M3/Phi')
+
+
+plt.figure()
+k_color = ['b', 'orange', 'green']
+i=0
+for k in range(len(k_list)):
+    
+    plt.plot(x[k], abs(delta_cdm[k]), color = f'{k_color[i]}', linestyle ='-',label=f"delta_cdm k = {k_values[k]}")
+    plt.plot(x[k], abs(delta_b[k]), color = f'{k_color[i]}', linestyle='--', label=f"delta_b k = {k_values[k]}")
+    i += 1
+plt.yscale('log')
+plt.legend()
+plt.title('$\delta_{cdm}$ and $\delta_b$')
+plt.xlabel('x')
+plt.savefig('./Figs/M3/toy_cosmology/delta_cdm_and_delta_b')
+
+
+plt.figure()
+i = 0
+for k in range(len(k_list)):
+    plt.plot(x[k], abs(v_cdm[k]), color = f'{k_color[i]}', linestyle ='-', label=f"v_cdm k = {k_values[k]}")
+    plt.plot(x[k], abs(v_b[k]), color = f'{k_color[i]}', linestyle='--', label=f"v_b k = {k_values[k]}")
+    i +=1
+plt.yscale('log')
+plt.legend()
+plt.title('$v_{cdm} and v_{b}$')
+plt.xlabel('x')
+plt.savefig('./Figs/M3/toy_cosmology/v_cdm_and_v_b')
+
+
+
 """

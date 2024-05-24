@@ -23,9 +23,8 @@ void Perturbations::solve(){
 
   
   // Compute source functions and spline the result
-
-  // std::cout << "\n" << "Computing source functions: TRUE" << "\n";
-  // compute_source_functions();
+  std::cout << "\n" << "Computing source functions: TRUE" << "\n";
+  compute_source_functions();
 
   
 }
@@ -50,9 +49,10 @@ void Perturbations::integrate_perturbations(){
   double k_max_log = log(k_max);
 
   Vector log_k_array = Utils::linspace(k_min_log, k_max_log, n_k);
-  for(int k = 0; k < n_k; k++){
+  for(int k = 0; k < n_k+1; k++){ // *** Added +1 
     k_array[k] = exp(log_k_array[k]);
   }
+
 
   Vector f_delta_cdm(n_k*n_x);
   Vector f_delta_b(n_k*n_x);
@@ -123,13 +123,13 @@ void Perturbations::integrate_perturbations(){
 
     // std::cout << "TIGHT COUPLING PHI INITIAL" << solution_y_tight_coupling[Constants.ind_Phi_tc][0]<< "\n";
     
-    //==============================================================================================
+    //===============================================================================================
     // TODO: Full equation integration
     // Remember to implement the routines:
     // set_ic_after_tight_coupling : The IC after tight coupling ends
     // rhs_full_ode : The dydx for our coupled ODE system
-    //==============================================================================================
-    int n_x_full = n_x - idx_end_tc +1; //*** +1 for 1 index overlap 
+    //===============================================================================================
+    int n_x_full = n_x - idx_end_tc + 1; //*** +1 for 1 index overlap 
     // Integrate from x_end_tight -> x_end
     Vector x_full = Utils::linspace(x_array[idx_end_tc], x_end, n_x_full);
     
@@ -553,12 +553,30 @@ void Perturbations::compute_source_functions(){
   //=============================================================================
   // Making the x and k arrays to evaluate over and use to make the splines
   //=============================================================================
+  // Vector k_array(n_k);
+  // Vector x_array(n_x);
+
   Vector k_array(n_k);
-  Vector x_array(n_x);
+  Vector x_array = Utils::linspace(x_start, x_end, n_x);
+  
+  double k_min_log = log(k_min);
+  double k_max_log = log(k_max);
+
+  Vector log_k_array = Utils::linspace(k_min_log, k_max_log, n_k);
+  for(int k = 0; k < n_k+1; k++){  // *** ADDED +1
+    k_array[k] = exp(log_k_array[k]);
+  }
+
+
 
   // Make storage for the source functions (in 1D array to be able to pass it to the spline)
   Vector ST_array(k_array.size() * x_array.size());
-  Vector SE_array(k_array.size() * x_array.size());
+  // Vector SE_array(k_array.size() * x_array.size());
+
+  Vector SW_array(k_array.size() * x_array.size());
+  Vector ISW_array(k_array.size() * x_array.size());
+  Vector Doppler_array(k_array.size() * x_array.size());
+  Vector Polarization_array(k_array.size() * x_array.size());
 
   // Compute source functions
   for(auto ix = 0; ix < x_array.size(); ix++){
@@ -574,28 +592,63 @@ void Perturbations::compute_source_functions(){
       // TODO: Compute the source functions
       //=============================================================================
       // Fetch all the things we need...
-      // const double Hp       = cosmo->Hp_of_x(x);
-      // const double tau      = rec->tau_of_x(x);
-      // ...
-      // ...
+      const double Hp       = cosmo->Hp_of_x(x);
+      const double dHp      = cosmo->dHpdx_of_x(x);
+
+      const double tau      = rec->tau_of_x(x);
+      const double dtau     = rec->dtaudx_of_x(x);
+
+      const double g_tilde  = rec->g_tilde_of_x(x);
+      const double dg_tilde = rec-> dgdx_tilde_of_x(x); 
+      const double ddg_tilde = rec->ddgddx_tilde_of_x(x);
+      
+      const double Psi = get_Psi(x,k);
+      const double dPsi = Psi_spline.deriv_x(x,k);
+      const double Phi = get_Phi(x,k);
+      const double dPhi = Phi_spline.deriv_x(x, k);
+
+      const double v_b = get_v_b(x,k);
+      const double dv_b = v_b_spline.deriv_x(x, k);
+
+      const double Theta_0 = get_Theta(x, k, 0);
+      const double Theta_1 = get_Theta(x, k, 1);
+      const double Theta_2 = get_Theta(x, k, 2);
+
+      double Pi = Theta_2;
+      double dPi = Theta_spline[2].deriv_x(x,k);
+      double ddPi = Theta_spline[2].deriv_xx(x,k);
+
+      const double c = Constants.c;
+       
+      SW_array[index] = g_tilde*(Theta_0 + Psi + 0.25*Pi) ;
+
+      ISW_array[index] = exp(-tau)*(dPsi - dPhi);
+
+      double d_Hgv_b_dx = dHp*g_tilde*v_b + Hp*dg_tilde*v_b + Hp*g_tilde*dv_b;
+      Doppler_array[index] = - 1.0/(c*k) * (d_Hgv_b_dx);
+
+      double dHpHpder_g_pi = dHp*dHp*g_tilde*Pi + Hp*dHp*g_tilde*Pi + Hp*dHp*dg_tilde*Pi + Hp*dHp*g_tilde*dPi;
+      double deriv_rest = 3.0*Hp*dHp*(dg_tilde*Pi + g_tilde*dPi) + Hp*Hp*(ddg_tilde*Pi+2.0*dg_tilde*dPi+g_tilde*ddPi);
+      Polarization_array[index] = 3.0/(4.0*c*c*k*k);
+
+    
 
       // Temperatur source
-      ST_array[index] = 0.0;
+      ST_array[index] = SW_array[index] + ISW_array[index] + Doppler_array[index] + Polarization_array[index];
 
       // Polarization source
-      if(Constants.polarization){
-        SE_array[index] = 0.0;
-      }
-
+      // if(Constants.polarization){
+      //   SE_array[index] = 0.0;
+      // }
+    
     }
-
   }
-
+  
   // Spline the source functions
-  ST_spline.create (x_array, k_array, ST_array, "Source_Temp_x_k");
-  if(Constants.polarization){
-    SE_spline.create (x_array, k_array, SE_array, "Source_Pol_x_k");
-  }
+  ST_spline.create(x_array, k_array, ST_array, "Source_Temp_x_k");
+  // if(Constants.polarization){
+  //   SE_spline.create (x_array, k_array, SE_array, "Source_Pol_x_k");
+  // }
 
   Utils::EndTiming("source");
 }
@@ -833,6 +886,8 @@ double Perturbations::get_Phi(const double x, const double k) const{
 double Perturbations::get_Psi(const double x, const double k) const{
   return Psi_spline(x,k);
 }
+
+
 double Perturbations::get_Pi(const double x, const double k) const{
   return 0.0; //Pi_spline(x,k);
 }
