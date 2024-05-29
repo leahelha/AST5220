@@ -49,7 +49,7 @@ void Perturbations::integrate_perturbations(){
   double k_max_log = log(k_max);
 
   Vector log_k_array = Utils::linspace(k_min_log, k_max_log, n_k);
-  for(int k = 0; k < n_k+1; k++){ // *** Added +1 
+  for(int k = 0; k < n_k; k++){ // *** Added +1 
     k_array[k] = exp(log_k_array[k]);
   }
 

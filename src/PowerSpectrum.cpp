@@ -36,7 +36,7 @@ void PowerSpectrum::solve(){
   double k_max_log = log(Constants.k_max);
 
   Vector log_k_array = Utils::linspace(k_min_log, k_max_log, n_k);
-  for(int k = 0; k < n_k+1; k++){
+  for(int k = 0; k < n_k; k++){ // NOt a +1 or a +1? ***
     k_array[k] = exp(log_k_array[k]);
   }
   std::cout << "k_min = " << k_array[0] << " k_max = " << k_array[-1] << " k size is " << k_array.size() << "\n";
