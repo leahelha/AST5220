@@ -3,7 +3,7 @@
 SHELL := /bin/bash
 
 # Set compiler (use =c++17 if you have this availiable)
-CC = g++ -std=c++11 
+CC = g++ -g -O3 -std=c++11 #-fsanitize=address
 
 # Paths to GSL library
 INC  = -I$(HOME)/local/include #-I/mn/stornext/u3/hansw/winther/local/include
@@ -15,7 +15,7 @@ LIBS = -L$(HOME)/local/lib -lgsl -lgslcblas #-L/mn/stornext/u3/hansw/winther/loc
 OPTIONS = 
 
 # Add bounds checking
-OPTIONS += -D_GLIBCXX_DEBUG
+#OPTIONS += -D_GLIBCXX_DEBUG
 
 # Show warnings if atempting to evaluate a spline out of bounds
 OPTIONS += -D_SPLINE_WARNINGS_ON
@@ -29,7 +29,7 @@ OPTIONS += -D_SPLINE_WARNINGS_ON
 
 #=======================================================
 
-C = -O3 -g $(OPTIONS) #***03-->08 
+C = $(OPTIONS) #***03-->08 
 
 #=======================================================
 

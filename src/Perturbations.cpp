@@ -563,7 +563,7 @@ void Perturbations::compute_source_functions(){
   double k_max_log = log(k_max);
 
   Vector log_k_array = Utils::linspace(k_min_log, k_max_log, n_k);
-  for(int k = 0; k < n_k+1; k++){  // *** ADDED +1
+  for(int k = 0; k < n_k; k++){  // *** ADDED +1
     k_array[k] = exp(log_k_array[k]);
   }
 
@@ -629,12 +629,12 @@ void Perturbations::compute_source_functions(){
 
       double dHpHpder_g_pi = dHp*dHp*g_tilde*Pi + Hp*dHp*g_tilde*Pi + Hp*dHp*dg_tilde*Pi + Hp*dHp*g_tilde*dPi;
       double deriv_rest = 3.0*Hp*dHp*(dg_tilde*Pi + g_tilde*dPi) + Hp*Hp*(ddg_tilde*Pi+2.0*dg_tilde*dPi+g_tilde*ddPi);
-      Polarization_array[index] = 3.0/(4.0*c*c*k*k);
+      Polarization_array[index] = 3.0/(4.0*c*c*k*k) * (dHpHpder_g_pi + deriv_rest); // *** see oppgave
 
     
 
       // Temperatur source
-      ST_array[index] = SW_array[index] + ISW_array[index] + Doppler_array[index] + Polarization_array[index];
+      ST_array[index] = SW_array[index] + ISW_array[index] + Doppler_array[index];// + Polarization_array[index];
 
       // Polarization source
       // if(Constants.polarization){

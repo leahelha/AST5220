@@ -36,10 +36,10 @@ void PowerSpectrum::solve(){
   double k_max_log = log(Constants.k_max);
 
   Vector log_k_array = Utils::linspace(k_min_log, k_max_log, n_k);
-  for(int k = 0; k < n_k; k++){ // NOt a +1 or a +1? ***
+  for(int k = 0; k < n_k; k++){ 
     k_array[k] = exp(log_k_array[k]);
   }
-  std::cout << "k_min = " << k_array[0] << " k_max = " << k_array[-1] << " k size is " << k_array.size() << "\n";
+  // std::cout << "k_min = " << k_array[0] << " k_max = " << k_array.back() << " k size is " << k_array.size() << "\n";
   std::cout << "SOLVE BEFORE BESSEL " <<"\n";
   //=========================================================================
   // TODO: Make splines for j_ell. 
@@ -129,18 +129,21 @@ Vector2D PowerSpectrum::line_of_sight_integration_single(
   Vector2D result = Vector2D(ells.size(), Vector(k_array.size()));
 
   double dx = 0.05; // Hans ***
-
-  int n_x_LOS = abs(x_start_LOS-x_end_LOS)/dx; // Trying this out
+  std::cout << " x_start_LOS = " << x_start_LOS << " x_end_LOS = " << x_end_LOS << "\n";
+  // int n_x_LOS = abs(x_start_LOS-x_end_LOS)/dx; // Trying this out
+  int n_x_LOS = abs(x_end_LOS-x_start_LOS)/dx;
+  std::cout << " n_x_LOS = " << n_x_LOS << "\n";
   
   Vector x_array = Utils::linspace(x_start_LOS, x_end_LOS, n_x_LOS);
   
   double k_start = k_array[0];
-  double k_end = k_array[-1];
+  double k_end = k_array.back();
 
 
  
-  
-  for(size_t ik = 0; ik < k_array.size()+1; ik++){  // size_t ik = 0;
+
+  for(size_t ik = 0; ik < k_array.size(); ik++){  // size_t ik = 0;
+
     double k = k_array[ik];
     //=============================================================================
     // TODO: Implement to solve for the general line of sight integral 
@@ -148,27 +151,32 @@ Vector2D PowerSpectrum::line_of_sight_integration_single(
     // given value of k
     //=============================================================================
     for(int il = 0; il<ells.size(); il++){
-      
-      double result_x = ( (source_function(x_array[0],k)*j_ell_splines[il](k*(eta0-cosmo->eta_of_x(x_start_LOS)))*dx)
-                        + (source_function(x_array[n_x_LOS],k)*j_ell_splines[il](k*(eta0-cosmo->eta_of_x(x_end_LOS)))*dx)) /2.0;
-      for(int ix = 1; ix<n_x_LOS; ix++){
+      // std::cout << "il = " << il << " ik = " << ik << " eta0-cosmo->eta_of_x(x_start_LOS) = " <<  eta0-cosmo->eta_of_x(x_start_LOS) << "\n";
 
-        double x = x_start_LOS + ix*dx;
+      int j_idx = il;
+
+      double result_x = ( (source_function(x_array[0],k)*j_ell_splines[j_idx]( k*(eta0-cosmo->eta_of_x(x_start_LOS) ) )) //*dx)
+                        + (source_function(x_array[n_x_LOS-1],k)*j_ell_splines[j_idx](k*(eta0-cosmo->eta_of_x(x_end_LOS)))) )*dx/2.0;
+      
+      
+      for(int ix = 1; ix<n_x_LOS-1; ix++){
+
+        double x = x_array[ix];
         double eta = cosmo->eta_of_x(x);
         double eta_ = cosmo->eta_of_x(x_array[ix-1]);
 
-        double f_k = source_function(x_array[ix],k)*j_ell_splines[il](k*(eta0-eta))*dx;
-        double f_k_ = source_function(x_array[ix-1],k)*j_ell_splines[il](k*(eta0-eta_))*dx;
+        double f_k = source_function(x_array[ix],k)*j_ell_splines[j_idx](k*(eta0-eta));
+        double f_k_ = source_function(x_array[ix-1],k)*j_ell_splines[j_idx](k*(eta0-eta_));
         
         result_x += (f_k_+f_k)*dx/2.0;
         
       }
-    
+      
       result[il][ik] = result_x;
       
     }
     // // Store the result for Source_ell(k) in results[ell][ik]
-    // std::cout << "result is k =  " << k_array[ik] << "\n";
+    
     
   }
 
@@ -197,13 +205,13 @@ void PowerSpectrum::line_of_sight_integration(Vector & k_array){
   };
   std::cout << "SOLVE <3> LOS 2"  <<"\n";
   // Do the line of sight integration
-  // Vector2D thetaT_ell_of_k = line_of_sight_integration_single(k_array, source_function_T);
+  Vector2D thetaT_ell_of_k = line_of_sight_integration_single(k_array, source_function_T);
 
-  std::cout << "SOLVE <3> LOS 3" << " k_min = " << k_array[0] << " k_max = " << k_array[-1] << " n_k = " << n_k <<"\n";
+  std::cout << "SOLVE <3> LOS 3" << " k_min = " << k_array[0] << " k_max = " << k_array.back() << " n_k = " << n_k <<"\n";
   // Spline the result and store it in thetaT_ell_of_k_spline
-  // for(size_t il=0; il<ells.size(); il++){
-  //   thetaT_ell_of_k_spline[il].create(k_array, thetaT_ell_of_k[il]);
-  // }
+  for(size_t il=0; il<ells.size(); il++){
+    thetaT_ell_of_k_spline[il].create(k_array, thetaT_ell_of_k[il]);
+  }
   
   // //============================================================================
   // // TODO: Solve for ThetaE_ell(k) and spline
@@ -227,7 +235,7 @@ Vector PowerSpectrum::solve_for_cell(
     std::vector<Spline> & f_ell_spline,
     std::vector<Spline> & g_ell_spline){
   const int nells      = ells.size();
-
+ 
   double pi = M_PI;
   //============================================================================
   // TODO: Integrate Cell = Int 4 * pi * P(k) f_ell g_ell dk/k
@@ -237,26 +245,26 @@ Vector PowerSpectrum::solve_for_cell(
   Vector result(ells.size());
   Vector k_array = exp(log_k_array);
 
-  double dk = 0.05;
-  int n_k = abs(k_array[-1]-k_array[0])/dk; // *** 
+  double dlogk = log_k_array[1] - log_k_array[0];
   std::cout << " SOLVE FOR CELL " << "\n";
   
   
   for(int il = 0; il<ells.size(); il++){
-    double result_k = ( (4.0*pi*primordial_power_spectrum(k_array[0])*f_ell_spline[il](k_array[0])*g_ell_spline[il](k_array[0])*dk/k_array[0])
-                    +  (4.0*pi*primordial_power_spectrum(k_array[-1])*f_ell_spline[il](k_array[-1])*g_ell_spline[il](k_array[-1])*dk/k_array[-1])) /2.0;
+    double result_k = ( (4.0*pi*primordial_power_spectrum(k_array[0])*f_ell_spline[il](k_array[0])*g_ell_spline[il](k_array[0])*dlogk)
+                    +  (4.0*pi*primordial_power_spectrum(k_array.back())*f_ell_spline[il](k_array.back())*g_ell_spline[il](k_array.back())*dlogk)) /2.0;
+   
     for(int ik = 1; ik<k_array.size(); ik++){
-      double k = k_array[0] + ik*dk;
+      double k = k_array[ik]; //+ ik*dk;
       double k_ = k_array[ik-1];
 
-      double Cell = 4.0*pi*primordial_power_spectrum(k)*f_ell_spline[il](k)*g_ell_spline[il](k)*dk/k;
-      double Cell_ = 4.0*pi*primordial_power_spectrum(k_)*f_ell_spline[il](k_)*g_ell_spline[il](k_)*dk/k_;
+      double Cell = 4.0*pi*primordial_power_spectrum(k)*f_ell_spline[il](k)*g_ell_spline[il](k)*dlogk;
+      double Cell_ = 4.0*pi*primordial_power_spectrum(k_)*f_ell_spline[il](k_)*g_ell_spline[il](k_)*dlogk;
 
-      result_k += (Cell_ - Cell)*dk/2.0;
+      result_k += (Cell_ + Cell)*dlogk/2.0;
     }
     result[il] = result_k;
   }
- 
+  std::cout << " SOLVE FOR CELL  DONE" << "\n";
   return result;
 }
 
@@ -301,8 +309,11 @@ double PowerSpectrum::get_cell_EE(const double ell) const{
 //====================================================
 
 void PowerSpectrum::output(std::string filename) const{
-  // Output in standard units of muK^2
+  
+  // MAKE EQUIVALENT FOR k's, you might have to pick one specific ell
+  // make k_array vector 
 
+  // Output in standard units of muK^2
   std::ofstream fp(filename.c_str());
   const int ellmax = int(ells[ells.size()-1]);
   auto ellvalues = Utils::linspace(2, ellmax, ellmax-1);

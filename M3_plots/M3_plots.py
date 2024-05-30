@@ -47,7 +47,7 @@ ddgtilde = data_rec[:, 8]
 """                                       PERTURBATIONS                                         """
 
 """
-         void Perturbations::output(const double k, const std::string filename) const{
+  void Perturbations::output(const double k, const std::string filename) const{
   std::ofstream fp(filename.c_str());
   const int npts = 5000;
   auto x_array = Utils::linspace(x_start, x_end, npts);

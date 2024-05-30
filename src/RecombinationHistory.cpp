@@ -414,7 +414,7 @@ void RecombinationHistory::solve_for_optical_depth_tau(){
   Vector s(npts);
   
   
-  for (size_t i = 0; i < npts +1; i++){
+  for (size_t i = 0; i < npts; i++){
 
     double OmegaB = cosmo -> get_OmegaB(x_array[i]);
     double OmegaR = cosmo -> get_OmegaR(x_array[i]);
