@@ -26,6 +26,7 @@ class BackgroundCosmology{
     // Start and end of x-integration (can be changed)
     double x_start = Constants.x_start;
     double x_end   = Constants.x_end;
+    double x_end_background = 5.0;
 
     // Splines to be made
     Spline t_of_x_spline{"t"};  // *** I added this
@@ -76,7 +77,12 @@ class BackgroundCosmology{
 
     // Distance measures
     double get_luminosity_distance_of_x(double x) const;
+     double get_angular_distance_of_x(double x) const;
     double get_comoving_distance_of_x(double x) const;
+
+    
+    double deta_of_x_dx(double x) const;
+    
 
     //double get_angular_distance_of_x(double x) const;
 

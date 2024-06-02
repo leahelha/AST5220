@@ -44,7 +44,7 @@ void BackgroundCosmology::solve(){
   double npts = Constants.npts ;//1e4;
 
 
-  Vector x_array = Utils::linspace(x_start, x_end, npts);
+  Vector x_array = Utils::linspace(x_start, x_end_background, npts);
 
   // The ODE for deta/dx
   ODEFunction detadx = [&](double x, const double *eta, double *detadx){
@@ -141,7 +141,10 @@ double BackgroundCosmology::dHpdx_of_x(double x) const{
 double BackgroundCosmology::ddHpddx_of_x(double x) const{
 
   double dHdx = -(H0*exp(-4.0*x)*(2.0*OmegaK*exp(2.0*x)+(3.0*OmegaCDM+3.0*OmegaB)*exp(x)+4.0*OmegaR+4.0*OmegaNu))/(2.0*sqrt(OmegaK*exp(-2.0*x)+(OmegaCDM+OmegaB)*exp(-3.0*x)+(OmegaR+OmegaNu)*exp(-4.0*x)+OmegaLambda));
-  double ddHddx = (H0*exp(-8.0*x)*(8.0*OmegaK*OmegaLambda*exp(6.0*x)+(18.0*OmegaCDM+18.0*OmegaB)*OmegaLambda*exp(5.0*x)+(32.0*OmegaLambda*OmegaR+32.0*OmegaLambda*OmegaNu+4.0*pow(OmegaK,2.0))*exp(4.0*x)+(14.0*OmegaCDM+14.0*OmegaB)*OmegaK*exp(3.0*x)+(24.0*OmegaK*OmegaR+24.0*OmegaK*OmegaNu+9.0*pow(OmegaCDM,2)+18.0*OmegaB*OmegaCDM+9.0*pow(OmegaB,2))*exp(2.0*x)+((26.0*OmegaCDM+26.0*OmegaB)*OmegaR+(26.0*OmegaCDM+26.0*OmegaB)*OmegaNu)*exp(x)+16.0*pow(OmegaR,2)+32.0*OmegaNu*OmegaR+16.0*pow(OmegaNu,2)))/(4.0*pow((OmegaK*exp(-2.0*x)+(OmegaCDM+OmegaB)*exp(-3.0*x)+(OmegaR+OmegaNu)*exp(-4.0*x)+OmegaLambda),(3.0/2.0)));
+  double ddHddx = (H0*exp(-8.0*x)*  (8.0*OmegaK*OmegaLambda*exp(6.0*x)+(18.0*OmegaCDM+18.0*OmegaB)*OmegaLambda*exp(5.0*x)+(32.0*OmegaLambda*OmegaR+32.0*OmegaLambda*OmegaNu+4.0*pow(OmegaK,2.0))*exp(4.0*x)+(14.0*OmegaCDM+14.0*OmegaB)*OmegaK*exp(3.0*x)+
+                  (24.0*OmegaK*OmegaR+24.0*OmegaK*OmegaNu+9.0*pow(OmegaCDM,2)+18.0*OmegaB*OmegaCDM+9.0*pow(OmegaB,2))*exp(2.0*x)+((26.0*OmegaCDM+26.0*OmegaB)*OmegaR
+                  +(26.0*OmegaCDM+26.0*OmegaB)*OmegaNu)*exp(x)+16.0*pow(OmegaR,2)+32.0*OmegaNu*OmegaR+16.0*pow(OmegaNu,2)))
+                    /(4.0*pow((OmegaK*exp(-2.0*x)+(OmegaCDM+OmegaB)*exp(-3.0*x)+(OmegaR+OmegaNu)*exp(-4.0*x)+OmegaLambda),(3.0/2.0)));
 
   double ddHpddx_of_x = exp(x) * (H_of_x(x) + 2.0 * dHdx + ddHddx) ;  //*** 
 
@@ -206,30 +209,34 @@ double BackgroundCosmology::get_OmegaK(double x) const{
 
 
 }
-// double BackgroundCosmology::get_angular_distance_of_x(double x)const{
 
-//   double A_sin = sin(sqrt(fabs(OmegaK)) * get_H0() * get_comoving_distance_of_x(x) / Constants.c); 
-//   double B = (sqrt(fabs(OmegaK)) * get_H0() * get_comoving_distance_of_x(x) / Constants.c);
-//   double A_sinh = sinh(sqrt(fabs(OmegaK)) * get_H0() * get_comoving_distance_of_x(x) / Constants.c); 
+double BackgroundCosmology::get_angular_distance_of_x(double x)const{
+
+  double A_sin = sin(sqrt(fabs(OmegaK)) * get_H0() * get_comoving_distance_of_x(x) / Constants.c); 
+  double B = (sqrt(fabs(OmegaK)) * get_H0() * get_comoving_distance_of_x(x) / Constants.c);
+  double A_sinh = sinh(sqrt(fabs(OmegaK)) * get_H0() * get_comoving_distance_of_x(x) / Constants.c); 
    
 
-//   double r = 0.0; // Declare r outside of the if blocks
+  double r = 0.0; 
+  if (abs(get_OmegaK(x)) < 0.00001){
+      r = get_comoving_distance_of_x(x);
+    }
+        
+    if (get_OmegaK(x) < 0){
+      r = get_comoving_distance_of_x(x) * A_sin / B;
+    }
+        
+    else if (get_OmegaK(x) > 0){
+      r = get_comoving_distance_of_x(x) * A_sinh / B;
+    }
+      
 
-//   if (get_OmegaK(x) == 0)
-//       r = get_comoving_distance_of_x(x);
+  //double dL = r / exp(x);
 
-//   else if (get_OmegaK(x) < 0)
-//       r = get_comoving_distance_of_x(x) * A_sin / B;
-
-//   else if (get_OmegaK(x) > 0)
-//       r = get_comoving_distance_of_x(x) * A_sinh / B;
-
-//   //double dL = r / exp(x);
-
-//   double dA = exp(x)*r;
-//   //std::cout << "r is " << r ;
-//   return dA;
-// }
+  double dA = exp(x)*r;
+  //std::cout << "r is " << r ;
+  return dA;
+}
     
 double BackgroundCosmology::get_luminosity_distance_of_x(double x) const{
   //=============================================================================
@@ -244,14 +251,18 @@ double BackgroundCosmology::get_luminosity_distance_of_x(double x) const{
 
   double r = 0.0; // Declare r outside of the if blocks
 
-  if (get_OmegaK(x) == 0)
-      r = get_comoving_distance_of_x(x);
-
-  else if (get_OmegaK(x) < 0)
-      r = get_comoving_distance_of_x(x) * A_sin / B;
-
-  else if (get_OmegaK(x) > 0)
-      r = get_comoving_distance_of_x(x) * A_sinh / B;
+  if (abs(get_OmegaK(x)) < 0.00001){
+    r = get_comoving_distance_of_x(x);
+  }
+      
+  if (get_OmegaK(x) < 0){
+    r = get_comoving_distance_of_x(x) * A_sin / B;
+  }
+      
+  else if (get_OmegaK(x) > 0){
+    r = get_comoving_distance_of_x(x) * A_sinh / B;
+  }
+      
 
   double dL = r/(exp(x));
 
@@ -274,7 +285,11 @@ double BackgroundCosmology::eta_of_x(double x) const{
   return eta_of_x_spline(x);
 }
 
-//*** I added this
+double BackgroundCosmology::deta_of_x_dx(double x) const{
+  return eta_of_x_spline.deriv_x(x);
+}
+
+
 double BackgroundCosmology::t_of_x(double x) const{
   return t_of_x_spline(x);
 }
@@ -321,8 +336,8 @@ void BackgroundCosmology::info() const{
 //====================================================
 void BackgroundCosmology::output(const std::string filename) const{
   const double x_min = Constants.x_start; //original -10.0 //*** @@@  changed
-  const double x_max =  Constants.x_end;  //original 0.0 //*** @@@
-  const int    n_pts =  100;  //original 100  //*** @@@
+  const double x_max =  x_end_background;//Constants.x_end;  //original 0.0 //*** @@@
+  const int    n_pts =  Constants.npts;  //original 100  //*** @@@
   
   Vector x_array = Utils::linspace(x_min, x_max, n_pts);
 
@@ -338,12 +353,19 @@ void BackgroundCosmology::output(const std::string filename) const{
     fp << get_OmegaR(x)      << " ";
     fp << get_OmegaNu(x)     << " ";
     fp << get_OmegaK(x)      << " ";
-    fp << ddHpddx_of_x(x)        << " "; //***
-    fp << t_of_x(x)        << " "; //***
+    fp << ddHpddx_of_x(x)        << " "; 
+    fp << t_of_x(x)        << " "; 
     fp << get_luminosity_distance_of_x(x) << " ";
+    fp << deta_of_x_dx(x) << " ";
     fp <<"\n";
   };
   std::for_each(x_array.begin(), x_array.end(), print_data);
+  // Times in x were usually calculated in a python program
+  std::cout << "Time of radiation-matter equality " << t_of_x(-8.65778) / (60.*60.*24*365*1e6) << " Myr" << "\n";
+  std::cout << "Time of matter-dark energy equality " << t_of_x(-0.255858) / (60.*60.*24*365*1e6) << " Myr" << "\n";
+  std::cout << "Time of Universe acceleration = 0 is  " << t_of_x(-0.486721) / (60.*60.*24*365*1e6) << " Myr" << "\n";
+
+
   std::cout << "t_decoupled " << t_of_x(-6.98462) / (60.*60.*24*365*1e6) << " Myr" << "\n";
   // -0.449561
   std::cout << "t_Saha " << t_of_x(-7.14033) / (60.*60.*24*365*1e6) << " Myr" << "\n";

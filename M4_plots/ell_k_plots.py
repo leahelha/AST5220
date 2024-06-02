@@ -11,9 +11,9 @@ Cell = data_rec[:, 1] # Cell is normalized in text
 
 plt.plot(l, Cell)
 plt.title("Cell")
-plt.xlim(2, l[-1])
+# plt.xlim(2, l[-1])
 plt.yscale("log")
-# plt.xscale("log")
+plt.xscale("log")
 plt.xlabel("ell")
 plt.show()
 

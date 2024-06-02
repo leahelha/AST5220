@@ -634,7 +634,7 @@ void Perturbations::compute_source_functions(){
     
 
       // Temperatur source
-      ST_array[index] = SW_array[index] + ISW_array[index] + Doppler_array[index];// + Polarization_array[index];
+      ST_array[index] = SW_array[index] + ISW_array[index] + Doppler_array[index]; // + Polarization_array[index];
 
       // Polarization source
       // if(Constants.polarization){

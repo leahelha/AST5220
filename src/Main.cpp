@@ -12,7 +12,7 @@ int main(int argc, char **argv){
   // Parameters
   //=========================================================================
 
-  // Background parameters
+  // // Background parameters
   double h           = 0.67;
   double OmegaB      = 0.05;
   double OmegaCDM    = 0.267;
@@ -20,13 +20,16 @@ int main(int argc, char **argv){
   double Neff        = 0.0; //3.046; //***
   double TCMB        = 2.7255;
 
-//  // Background parameters *** TOY BACKGROUND COSMOLOGY FOR M3 COMPARISON
-//   double h           = 0.7;
-//   double OmegaB      = 0.05;
-//   double OmegaCDM    = 0.45;
-//   double OmegaK      = 0.0;
-//   double Neff        = 0.0; //3.046; //***
-//   double TCMB        = 2.7255;
+  // Best fit background params
+  //  h        OmegaM      OmegaK    
+  // 0.701711   0.255027   0.0789514
+  // double h           = 0.701711;
+  // double OmegaB      = 0.05;
+  // double OmegaCDM    = 0.255027-0.05;
+  // double OmegaK      = 0.0789514;
+  // double Neff        = 0.0; 
+  // double TCMB        = 2.7255;
+
 
   // Recombination parameters
   double Yp          = 0; //= 0.245;
@@ -47,18 +50,21 @@ int main(int argc, char **argv){
   
   
   // Output background evolution quantities
+  // cosmo.output("best_params_cosmology.txt");
+
+  // Output background evolution quantities
   cosmo.output("cosmology.txt");
 
   // Do the supernova fits. Uncomment when you are ready to run this
   // Make sure you read the comments on the top of src/SupernovaFitting.h
-  //mcmc_fit_to_supernova_data("data/supernovadata.txt", "results_supernovafitting.txt");
+  // mcmc_fit_to_supernova_data("data/supernovadata.txt", "results_supernovafitting.txt");
 
   
-
+// return 0.0;
   //=========================================================================
   // Module II
   //=========================================================================
-  
+
   // Solve the recombination history
   RecombinationHistory rec(&cosmo, Yp);
   rec.solve();

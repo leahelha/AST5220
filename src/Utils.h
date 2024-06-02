@@ -13,6 +13,9 @@
 #include "Spline.h"
 #include "ODESolver.h"
 
+
+
+
 // The constants used in this code. Everything is here in SI units
 extern struct ConstantsAndUnits {
   // Basic units (here we use SI)
@@ -52,7 +55,7 @@ extern struct ConstantsAndUnits {
   const double x_end   = 0.0; //0.0;    //*** @@@  changed 6.0
 
   // @@@ Adding npts, for x-arrays
-  const double npts = 1e4;
+  const double npts = 4e5;
   const double pi = M_PI;
 
 
