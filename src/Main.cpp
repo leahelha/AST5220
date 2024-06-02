@@ -60,7 +60,7 @@ int main(int argc, char **argv){
   // mcmc_fit_to_supernova_data("data/supernovadata.txt", "results_supernovafitting.txt");
 
   
-// return 0.0;
+return 0.0;
   //=========================================================================
   // Module II
   //=========================================================================

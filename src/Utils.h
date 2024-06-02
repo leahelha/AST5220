@@ -55,7 +55,7 @@ extern struct ConstantsAndUnits {
   const double x_end   = 0.0; //0.0;    //*** @@@  changed 6.0
 
   // @@@ Adding npts, for x-arrays
-  const double npts = 4e5;
+  const double npts = 1e4; //4e5; // 4e5 for the Omega plots
   const double pi = M_PI;
 
 
