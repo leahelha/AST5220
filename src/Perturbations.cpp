@@ -633,8 +633,13 @@ void Perturbations::compute_source_functions(){
 
     
 
-      // Temperatur source
-      ST_array[index] = SW_array[index] + ISW_array[index] + Doppler_array[index]; // + Polarization_array[index];
+      // Temperature source
+      ST_array[index] = SW_array[index] + ISW_array[index] + Doppler_array[index] + Polarization_array[index];
+      // ST_array[index] =  ISW_array[index]; 
+      // ST_array[index] =  Doppler_array[index]; 
+      // ST_array[index] =  Polarization_array[index];
+      
+
 
       // Polarization source
       // if(Constants.polarization){
@@ -988,12 +993,12 @@ void Perturbations::output(const double k, const std::string filename) const{
     fp << get_v_b(x,k)        << " ";
 
 
-    // fp << get_Source_T(x,k)  << " ";
-    // fp << get_Source_T(x,k) * Utils::j_ell(5,   arg)           << " ";
-    // fp << get_Source_T(x,k) * Utils::j_ell(50,  arg)           << " ";
-    // fp << get_Source_T(x,k) * Utils::j_ell(500, arg)           << " ";
+    fp << get_Source_T(x,k)  << " ";
+    fp << get_Source_T(x,k) * Utils::j_ell(5,   arg)           << " ";
+    fp << get_Source_T(x,k) * Utils::j_ell(50,  arg)           << " ";
+    fp << get_Source_T(x,k) * Utils::j_ell(500, arg)           << " ";
 
-    // fp << get_Pi(x,k)        << " ";
+    fp << get_Pi(x,k)        << " ";
     
     fp << "\n";
   };

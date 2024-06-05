@@ -116,8 +116,13 @@ class PowerSpectrum {
     double get_cell_TE(const double ell) const;
     double get_cell_EE(const double ell) const;
 
+
+
     // Output Cells in units of l(l+1)/2pi (muK)^2
-    void output(std::string filename) const;
+    void output_cells(std::string filename) const;
+    void output_bessel(std::string filename) const;
+    void output_transfer(std::string filename) const;
+
 };
 
 #endif

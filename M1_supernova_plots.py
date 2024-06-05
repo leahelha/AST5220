@@ -108,9 +108,9 @@ plt.figure()
 plt.plot(z_cosmo, cosmo_dL*Gpc/z_cosmo, color="blue", label="Fiducial cosmology")
 plt.plot(z_best, cosmo_dL_best*Gpc/z_best, color="orange", label="Best fit from MCMC")
 plt.errorbar(z_obs, dL_obs/z_obs, yerr=error_obs/z_obs, fmt='o', color='red', ecolor='red', capsize=2, ms=2, label="Observed data")
-plt.title("$d_L$")
-plt.xlabel('z')
-plt.ylabel('Gpc')
+# plt.title("$d_L$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+plt.xlabel('z', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+plt.ylabel('Gpc', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.xscale('log')
 plt.xlim(0.005, 1.45)
 plt.ylim(3.5, 8)
@@ -121,18 +121,19 @@ plt.savefig("Figs/sn_dL_plots.pdf")
 
 """ Confidence region 1sig, 2sig and 3sig """
 plt.figure()
+best_lambda = 1 - (0.0789514  + 0.255027) 
 # plt.scatter(OmegaM_s3,  OmegaLambda_s3, label = "$3\sigma$")
 plt.scatter(OmegaM_s2, OmegaLambda_s2, color='maroon', s=3, label="$2\sigma$")
 scatter = plt.scatter(OmegaM_selected, OmegaLambda_selected, c=chi2, cmap='viridis', s=3, label="$1\sigma$")
 plt.colorbar(scatter, label=r"$\chi^2$")
 plt.plot((0,1), (1,0), color='black', linestyle = '--', label='Flat universe')
-plt.xlim(0, 0.57)
+plt.scatter(0.255027, best_lambda, color='orange', marker='*', label='Best fit')
+plt.xlim(0.0, 0.6)
 plt.legend()
-plt.xlabel('$\Omega_{M0}$')
-plt.ylabel('$\Omega_{\Lambda0}$')
-plt.title('Confidence Region of $\Omega_{M0}$ and $\Omega_{\Lambda0}$')
+plt.xlabel('$\Omega_{M0}$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+plt.ylabel('$\Omega_{\Lambda0}$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+# plt.title('Confidence Region of $\Omega_{M0}$ and $\Omega_{\Lambda0}$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.savefig("Figs/sn_Confidence_region.pdf")
-
 
 std_OmegaM = np.std(OmegaM_selected)
 std_OmegaLambda = np.std(OmegaLambda_selected)
@@ -150,27 +151,25 @@ h_2sig = sig2_data[:, 1]
 h_3sig = sig3_data[:, 1]
 
 hist_sig = np.std(h_selected)
-mu = 0.701711
+mu = np.mean(h_selected)#0.701711
+best_fit = 0.701711
 
 x_array = np.linspace(min(h_selected), max(h_selected), 1000)
-# print(max(h_selected))
-# print(min(h_selected))
-# print(np.mean(h_selected))
-# print(np.std(h_selected))
+
 
 plt.figure()
 # plt.hist(h_3sig, bins=100, alpha=0.5, label='$H_0$', edgecolor='white', linewidth=0.5) 
 # plt.hist(h_2sig, bins=100, alpha=0.5, label='$H_0$', edgecolor='white', linewidth=0.5) 
 plt.hist(h_selected, color='teal', bins=100, alpha=0.5, edgecolor='white', linewidth=0.5, density=True) 
-plt.axvline(x=0.701711, color='black', linestyle='--', label=f'Best fit')
+plt.axvline(x=0.701711, color='black', linestyle='--', label=f'Best $H_0$ = {best_fit:.3f}')
 pdf = norm.pdf(x_array, mu, hist_sig)
 plt.plot(x_array, pdf, color='navy')
 plt.text(0.05, 0.95, f'$\mu$=0.702 \n $\sigma={hist_sig:.3f}$', transform=plt.gca().transAxes, 
          verticalalignment='top', bbox=dict(boxstyle="square,pad=0.3", facecolor='white', alpha=0.5, edgecolor='none'))
-plt.xlabel('100 km/s/Mpc')
+plt.xlabel('100 km/s/Mpc', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 # plt.ylabel('Frequency normalized')
 plt.legend()
-plt.title('Posterior pdf of $H_0$')
+# plt.title('Posterior pdf of $H_0$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.savefig("Figs/sn_Histogram_of_H_parameters.pdf")
 
 
@@ -179,47 +178,68 @@ plt.savefig("Figs/sn_Histogram_of_H_parameters.pdf")
 
 plt.figure()
 OmegaM_mean = np.mean(OmegaM_selected)
+best_M = 0.255027
 OmegaM_std = np.std(OmegaM_selected)
+
 OmegaM_x = np.linspace(np.min(OmegaM_selected), np.max(OmegaM_selected), 1000)
 pdf_M = norm.pdf(OmegaM_x, OmegaM_mean, OmegaM_std)
 
+
 plt.hist(OmegaM_selected, color='teal', bins=100, alpha=0.5,  edgecolor='white', linewidth=0.5, density=True)
-plt.axvline(x=OmegaM_mean, color='black', linestyle='--', label=f'Best fit')
-plt.plot(OmegaM_x, pdf_M)
-plt.legend()
+plt.axvline(x=0.255027, color='black', linestyle='--', label=r'Best $\Omega_{M0}$ = 0.255')
+plt.plot(OmegaM_x, pdf_M, color='navy')
 plt.text(0.05, 0.95, f'$\mu$={OmegaM_mean:.3f} \n $\sigma={OmegaM_std:.3f}$', transform=plt.gca().transAxes, 
-         verticalalignment='top', bbox=dict(boxstyle="square,pad=0.3", facecolor='white', alpha=0.5, edgecolor='none'))
-plt.title('Posterior pdf of $\Omega_{M0}$')
-plt.xlabel('$\Omega_{M0}$')
+         verticalalignment='top', bbox=dict(boxstyle="square,pad=0.3", facecolor='white', alpha=0.5, edgecolor='none') )
+
+# plt.title('Posterior pdf of $\Omega_{M0}$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+plt.xlabel('$\Omega_{M0}$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+plt.legend()
 plt.savefig("Figs/sn_Histogram_of_omegaM_Gaussian.pdf")
 
 
 plt.figure()
 OmegaK_mean = np.mean(OmegaK_selected)
+best_K = 0.0789514
 OmegaK_std = np.std(OmegaK_selected)
 OmegaK_x = np.linspace(np.min(OmegaK_selected), np.max(OmegaK_selected), 1000)
 pdf_K = norm.pdf(OmegaK_x, OmegaK_mean, OmegaK_std)
 
 plt.hist(OmegaK_selected, color='teal', bins=100, alpha=0.5, edgecolor='white', linewidth=0.5, density=True)
-plt.axvline(x=OmegaK_mean, color='black', linestyle='--', label=f'Best fit')
-plt.plot(OmegaK_x, pdf_K)
-plt.xlabel('$\Omega_{K0}$')
-plt.legend()
+plt.axvline(x=0.0789514, color='black', linestyle='--', label=r'Best $\Omega_{K0}$ = 0.0790')
+plt.plot(OmegaK_x, pdf_K, color='navy')
+plt.xlabel('$\Omega_{K0}$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+
 plt.text(0.05, 0.95, f'$\mu$={OmegaK_mean:.3f}\n$\sigma$={OmegaK_std:.3f}', transform=plt.gca().transAxes, 
          verticalalignment='top', bbox=dict(boxstyle="square,pad=0.3", facecolor='white', alpha=0.5, edgecolor='none'))
-plt.title('Posterior pdf of $\Omega_{K0}$')
+
+plt.legend()
+# plt.title('Posterior pdf of $\Omega_{K0}$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.savefig("Figs/sn_Histogram_of_omegaK_Gaussian.pdf")
 
 
 
-#           chi2             h      OmegaM    OmegaK    Acceptrate
-# Minimum chi^2 found    29.2799   0.701711   0.255027   0.0789514
+""" Goodness of fit evaluation """
+# plt.figure()
+# N = 31#len(cosmo_dL)
+# fit_check = chi2/N
+
+# chi_x = np.linspace(np.min(fit_check), np.max(fit_check), 1000)
+
+# chi_mean = np.mean(fit_check)
+# chi_std = np.std(fit_check)
+# pdf_chi = norm.pdf(chi_x, chi_mean, chi_std)
 
 
-# Minimum chi^2 found 29.2799 0.701711 0.255027 0.0789514 
+# plt.hist(fit_check, color='teal', bins=100, alpha=0.5,  edgecolor='white', linewidth=0.5, density=True)
+# plt.plot(chi_x, pdf_chi, color='navy')
+# plt.xlabel(r'$\chi ^2/N$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+# plt.text(0.05, 0.95, f'$\mu$={chi_mean:.3f} \n $\sigma={chi_std:.3f}$', transform=plt.gca().transAxes, 
+#          verticalalignment='top', bbox=dict(boxstyle="square,pad=0.3", facecolor='white', alpha=0.5, edgecolor='none'))
+# plt.savefig('Figs/Goodness_of_fit.pdf')
+# plt.show()
 
 
-# Minimum chi^2 found 29.2799 0.701711 0.255027 0.0789514 
+
 
 """
 // How to analyze the resulting chains:

@@ -44,21 +44,21 @@ error = [lower_error, upper_error]
 
 plt.figure()
 # plt.plot(l, Cell*(l*(l+1))/(2*np.pi)*(10**6*TempCMB0)**2 )
-lnwidth = 0.5
-plt.plot(l, Cell, color='blue')
-plt.plot(l, Cell_SW, linewidth=lnwidth, label='SW')
-plt.plot(l, Cell_ISW, linewidth=lnwidth, label='ISW')
-plt.plot(l, Cell_Doppler, linewidth=lnwidth, label='Doppler')
-plt.plot(l, Cell_Polarization, linewidth=lnwidth, label='Polarization')
-plt.errorbar(ell_planck, C_ell_planck, elinewidth=0.5, yerr=error, fmt='o', color='red', ecolor='red', capsize=1, ms=1, label="Planck data")
+plt.plot(l, Cell)
+plt.plot(l, Cell_SW, label='SW')
+plt.plot(l, Cell_ISW, label='ISW')
+plt.plot(l, Cell_Doppler, label='Doppler')
+plt.plot(l, Cell_Polarization, label='Polarization')
+
+# plt.errorbar(ell_planck, C_ell_planck, elinewidth=0.5, yerr=error, fmt='o', color='red', ecolor='red', capsize=1, ms=1, label="Planck data")
 # plt.xlim(2, l[-1])
 plt.xscale("log")
-plt.xlabel("$\ell$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+plt.xlabel("ell")
 plt.legend()
 plt.savefig('./Figs/M4/C_ell.pdf')
 
-
-
+plt.show()
+exit()
 """ Make plot of Theta_100(k) from l=100"""
 """
  std::ofstream fp(filename.c_str());
@@ -113,8 +113,8 @@ k_eq = cosmo_Hp_of_x[np.where(cosmo_x==x_eq)]/c.value
 plt.figure()
 plt.plot(k/h /Mpc, pofk*(Mpc**3)*(h**3))
 plt.axvline(k_eq/h/Mpc, color='black', linestyle='--', label=r'$k_{eq}$')
-plt.xlabel('k', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
-plt.ylabel('P(k)(Mpc/h)^3', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+plt.xlabel('k')
+plt.ylabel('P(k)(Mpc/h)^3')
 plt.xscale('log')
 plt.yscale('log')
 plt.legend()

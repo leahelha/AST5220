@@ -31,6 +31,10 @@ void RecombinationHistory::output(const std::string filename) const{
     fp << "\n";
   };
 """
+Gyr = 1/(60*60*24*365*1e9) # from s to Gyr
+Mpc = 3.24*10**(-23) # from m to Mpc
+Gpc = 3.24*10**(-25)
+
 data = np.loadtxt("./recombination.txt")
 
 x = data[:, 0]
@@ -42,6 +46,14 @@ ddtau = data[:, 5]
 gtilde = data[:, 6]
 dgtilde = data[:, 7]
 ddgtilde = data[:, 8]
+
+sound_horizon = data[:, 9]
+
+""" Sound horizon """
+sound_horizon_rec = sound_horizon[ np.argmin(np.abs(tau-1)) ]*Mpc
+
+print(f'sound horizon: {sound_horizon_rec}, {np.min(np.abs(tau-1))}, len sound horizon {len(sound_horizon)}')
+
 
 
 print(f'Freeze out: Xe = {Xe[-1]}')

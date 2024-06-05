@@ -8,6 +8,7 @@ Mpc = 3.24*10**(-23) # from m to Mpc
 Gpc = 3.24*10**(-25)
 
 
+
 cosmo = np.loadtxt("./cosmology.txt")
 print(f"Shape of cosmo = {np.shape(cosmo)}")
 
@@ -148,8 +149,8 @@ for k in range(len(k_list)):
     i += 1
 plt.yscale('log')
 plt.legend()
-plt.title('$\delta_{cdm}$, $\delta_b$, and $\delta_{\gamma}$')
-plt.xlabel('x')
+# plt.title('$\delta_{cdm}$, $\delta_b$, and $\delta_{\gamma}$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+plt.xlabel("$x$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.savefig('./Figs/M3/densities_pert.pdf')
 
 
@@ -164,30 +165,29 @@ for k in range(len(k_list)):
     i +=1
 plt.yscale('log')
 plt.legend()
-plt.title('$v_{cdm}$, $v_{b}$ and $v_{\gamma}$')
-plt.xlabel('x')
+# plt.title('$v_{cdm}$, $v_{b}$ and $v_{\gamma}$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+plt.xlabel("$x$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.savefig('./Figs/M3/velocities_pert.pdf')
 
 
 plt.figure()
 for k in range(len(k_list)):
-    plt.plot(x[k], abs(-3*Theta_1[k]), label=f"k = {k_values[k]}", alpha = 0.8)    
+    plt.plot(x[k], (-3*Theta_1[k]), label=f"k = {k_values[k]}", alpha = 0.8)    
     i +=1
-plt.yscale('log')
+# plt.yscale('log')
 plt.legend()
-plt.title('$v_{\gamma} = -3\Theta_1$')
-plt.xlabel('x')
+# plt.title('$v_{\gamma} = -3\Theta_1$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+plt.xlabel("$x$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.savefig('./Figs/M3/velocity_gamma.pdf')
-
 
 plt.figure()
 for k in range(len(k_list)):
-    plt.plot(x[k], abs(4*Theta_0[k]), label=f"k = {k_values[k]}")    
+    plt.plot(x[k], (4*Theta_0[k]), label=f"k = {k_values[k]}")    
     i +=1
-plt.yscale('log')
+# plt.yscale('log')
 plt.legend()
-plt.title('$\delta_{\gamma} = 4\Theta_0$')
-plt.xlabel('x')
+# plt.title('$\delta_{\gamma} = 4\Theta_0$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+plt.xlabel("$x$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.savefig('./Figs/M3/delta_gamma.pdf')
 
 
@@ -196,8 +196,8 @@ plt.figure()
 for k in range(len(k_list)):
     plt.plot(x[k], Theta_0[k], label=f"k = {k_values[k]}")
 plt.legend()
-plt.title('$\Theta_0$')
-plt.xlabel('x')
+# plt.title('$\Theta_0$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+plt.xlabel("$x$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.savefig('./Figs/M3/Theta_0.pdf')
 
 
@@ -205,8 +205,8 @@ plt.figure()
 for k in range(len(k_list)):
     plt.plot(x[k], Theta_1[k], label=f"k = {k_values[k]}")
 plt.legend()
-plt.title('$\Theta_1$')
-plt.xlabel('x')
+# plt.title('$\Theta_1$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+plt.xlabel("$x$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.savefig('./Figs/M3/Theta_1.pdf')
 
 
@@ -214,8 +214,8 @@ plt.figure()
 for k in range(len(k_list)):
     plt.plot(x[k], Theta_2[k], label=f"k = {k_values[k]}")
 plt.legend()
-plt.title('$\Theta_2$')
-plt.xlabel('x')
+# plt.title('$\Theta_2$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+plt.xlabel("$x$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.savefig('./Figs/M3/Theta_2.pdf')
 
 
@@ -223,8 +223,8 @@ plt.figure()
 for k in range(len(k_list)):
     plt.plot(x[k], Psi[k]+Phi[k], label=f"k = {k_values[k]}")
 plt.legend()
-plt.title('$\Psi + \Phi$')
-plt.xlabel('x')
+# plt.title('$\Psi + \Phi$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+plt.xlabel("$x$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.savefig('./Figs/M3/psi_phi_sum.pdf')
 
 
@@ -232,8 +232,8 @@ plt.figure()
 for k in range(len(k_list)):
     plt.plot(x[k], Phi[k], label=f"k = {k_values[k]}")
 plt.legend()
-plt.title('$\Phi$')
-plt.xlabel('x')
+# plt.title('$\Phi$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+plt.xlabel("$x$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.savefig('./Figs/M3/Phi.pdf')
 
 

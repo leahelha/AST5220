@@ -27,8 +27,7 @@ void PowerSpectrum::solve(){
   //=========================================================================
   // TODO: Choose the range of k's and the resolution to compute Theta_ell(k)
   //=========================================================================
-  // Vector k_array;
-  // Vector log_k_array = log(k_array);
+
 
   Vector k_array(n_k);
 
@@ -61,13 +60,7 @@ void PowerSpectrum::solve(){
   auto cell_TT = solve_for_cell(log_k_array, thetaT_ell_of_k_spline, thetaT_ell_of_k_spline);
   cell_TT_spline.create(ells, cell_TT, "Cell_TT_of_ell");
   
-  //=========================================================================
-  // TODO: Do the same for polarization...
-  //=========================================================================
-  // ...
-  // ...
-  // ...
-  // ...
+
 }
 
 //====================================================
@@ -211,6 +204,7 @@ void PowerSpectrum::line_of_sight_integration(Vector & k_array){
   // Spline the result and store it in thetaT_ell_of_k_spline
   for(size_t il=0; il<ells.size(); il++){
     thetaT_ell_of_k_spline[il].create(k_array, thetaT_ell_of_k[il]);
+    // std::cout << thetaT_ell_of_k_spline[il] << "\n";
   }
   
   // //============================================================================
@@ -260,7 +254,7 @@ Vector PowerSpectrum::solve_for_cell(
       double Cell = 4.0*pi*primordial_power_spectrum(k)*f_ell_spline[il](k)*g_ell_spline[il](k)*dlogk;
       double Cell_ = 4.0*pi*primordial_power_spectrum(k_)*f_ell_spline[il](k_)*g_ell_spline[il](k_)*dlogk;
 
-      result_k += (Cell_ + Cell)*dlogk/2.0;
+      result_k += (Cell_ + Cell)/2.0;
     }
     result[il] = result_k;
   }
@@ -283,10 +277,26 @@ double PowerSpectrum::primordial_power_spectrum(const double k) const{
 double PowerSpectrum::get_matter_power_spectrum(const double x, const double k_mpc) const{
   double pofk = 0.0;
 
+  double H0 = cosmo-> get_H0();
+  double OmegaCDM0 = cosmo->get_OmegaCDM(0.0);
+  double OmegaB0 = cosmo->get_OmegaB(0.0);
+
+  double OmegaM0 = OmegaCDM0 + OmegaB0;
+
+  double c = Constants.c;
+  double k_SI = k_mpc ;
+  double Phi = pert->get_Phi(x, k_SI);
+  double a = exp(x); // Scale factor today
+
   //=============================================================================
   // TODO: Compute the matter power spectrum
   //=============================================================================
+  
+  double Delta_M = (c*c*k_SI*k_SI * Phi * a) / ((3.0/2.0) * OmegaM0 * H0*H0);
+  double k3 = k_mpc * k_mpc * k_mpc;
+  double P_primordial = 2.0*M_PI*M_PI * primordial_power_spectrum(k_SI) / k3; 
 
+  pofk = abs(Delta_M*Delta_M) * P_primordial;
 
   return pofk;
 }
@@ -304,26 +314,43 @@ double PowerSpectrum::get_cell_EE(const double ell) const{
   return cell_EE_spline(ell);
 }
 
+
+
 //====================================================
 // Output the cells to file
 //====================================================
 
-void PowerSpectrum::output(std::string filename) const{
+void PowerSpectrum::output_cells(std::string filename) const{
   
   // MAKE EQUIVALENT FOR k's, you might have to pick one specific ell
   // make k_array vector 
+  Vector k_array(n_k);
+
+  double k_min_log = log(Constants.k_min);
+  double k_max_log = log(Constants.k_max);
+
+  Vector log_k_array = Utils::linspace(k_min_log, k_max_log, n_k);
+  for(int k = 0; k < n_k; k++){ 
+    k_array[k] = exp(log_k_array[k]);
+  }
+
 
   // Output in standard units of muK^2
+
   std::ofstream fp(filename.c_str());
+
   const int ellmax = int(ells[ells.size()-1]);
   auto ellvalues = Utils::linspace(2, ellmax, ellmax-1);
+
   auto print_data = [&] (const double ell) {
+
     double normfactor  = (ell * (ell+1)) / (2.0 * M_PI) * pow(1e6 * cosmo->get_TCMB(), 2);
     double normfactorN = (ell * (ell+1)) / (2.0 * M_PI) 
       * pow(1e6 * cosmo->get_TCMB() *  pow(4.0/11.0, 1.0/3.0), 2);
     double normfactorL = (ell * (ell+1)) * (ell * (ell+1)) / (2.0 * M_PI);
     fp << ell                                 << " ";
     fp << cell_TT_spline( ell ) * normfactor  << " ";
+
     if(Constants.polarization){
       fp << cell_EE_spline( ell ) * normfactor  << " ";
       fp << cell_TE_spline( ell ) * normfactor  << " ";
@@ -331,5 +358,49 @@ void PowerSpectrum::output(std::string filename) const{
     fp << "\n";
   };
   std::for_each(ellvalues.begin(), ellvalues.end(), print_data);
+  
 }
+
+
+
+void PowerSpectrum::output_transfer(std::string filename) const{
+  
+  // MAKE EQUIVALENT FOR k's, you might have to pick one specific ell
+  // make k_array vector 
+  Vector k_array(n_k);
+
+  double k_min_log = log(Constants.k_min);
+  double k_max_log = log(Constants.k_max);
+
+  Vector log_k_array = Utils::linspace(k_min_log, k_max_log, n_k);
+  for(int k = 0; k < n_k; k++){ 
+    k_array[k] = exp(log_k_array[k]);
+  }
+
+  
+
+  // Output in standard units of muK^2
+
+  std::ofstream fp(filename.c_str());
+
+  auto print_data = [&] (const double k) {
+
+    fp << k  << " ";
+    fp << get_matter_power_spectrum(0, k) << " ";
+    fp << thetaT_ell_of_k_spline[0](k)    << " ";
+    fp << thetaT_ell_of_k_spline[15](k)    << " ";
+    fp << thetaT_ell_of_k_spline[19](k)    << " ";
+    fp << thetaT_ell_of_k_spline[32](k)    << " ";
+    fp << thetaT_ell_of_k_spline[42](k)    << " ";
+    fp << thetaT_ell_of_k_spline[62](k)    << " ";
+    fp << thetaT_ell_of_k_spline[5](k)    << " ";
+
+    fp << "\n";
+  };
+  std::for_each(k_array.begin(), k_array.end(), print_data);
+  
+}
+
+
+
 

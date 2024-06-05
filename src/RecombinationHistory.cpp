@@ -411,22 +411,44 @@ void RecombinationHistory::solve_for_optical_depth_tau(){
 
 
   // COMPUTING THE SOUND HORIZON
+  /*
   Vector s(npts);
   
   
-  for (size_t i = 0; i < npts; i++){
+  for (size_t i = 0; i < npts_rec_arrays; i++){
 
     double OmegaB = cosmo -> get_OmegaB(x_array[i]);
     double OmegaR = cosmo -> get_OmegaR(x_array[i]);
-    double R = 4.0*OmegaR/(3.0*OmegaB*exp(x_array[i]));
+    double R = 4.0*OmegaR/(3.0*OmegaB);
 
     double cs = Constants.c * sqrt( R / ( 3.0 + 3.0*R )  );
 
     s[i] = cs/(cosmo -> Hp_of_x(x_array[i]));
 
   }
+  */
+  ODESolver s_ode;
+  ODEFunction dsdx = [&](double x, const double *s, double *drsdx){
+    double OmegaB = cosmo -> get_OmegaB(x);
+    double OmegaR = cosmo -> get_OmegaR(x);
+    double R = 4.0*OmegaR/(3.0*OmegaB);
+    double cs = Constants.c * sqrt( R / ( 3.0 + 3.0*R )  );
+    drsdx[0] =  cs / (cosmo -> Hp_of_x(x));
+    return GSL_SUCCESS;
+  };
+
+  //=============================================================================
+  // Set up and solve the ODE and make tau splines
+  //=============================================================================
+  double OmegaB_s = cosmo -> get_OmegaB(x_array[0]);
+  double OmegaR_s = cosmo -> get_OmegaR(x_array[0]);
+  double R = 4.0*OmegaR_s/(3.0*OmegaB_s);
+  double cs = Constants.c * sqrt( R / ( 3.0 + 3.0*R )  );
+  Vector s_init = {cs / (cosmo -> Hp_of_x(x_array[0]))};
+  s_ode.solve(dsdx,  x_array, s_init);  
+  auto solution_s = s_ode.get_data_by_component(0);
   
-  sound_horizon_of_x_spline.create(x_array, s, "s");
+  sound_horizon_of_x_spline.create(x_array, solution_s, "s");
 
 }
 

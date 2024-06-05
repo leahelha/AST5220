@@ -80,8 +80,8 @@ z_rm_time = 1/np.exp(cosmo_x[rm_time[0]]) - 1
 z_md_time = 1/np.exp(cosmo_x[md_time[-1]]) - 1
 
 
-print(f'Radiation-matter equality time  x = {cosmo_x[rm_time]}, z = {z_rm_time}')
-print(f'Matter-dark energy equality time  x = {cosmo_x[md_time]}, z = {z_md_time}') #insert these in c code to find cosmic time
+print(f'Radiation-matter equality time  x = {cosmo_x[rm_time[0]]}, z = {z_rm_time}')
+print(f'Matter-dark energy equality time  x = {cosmo_x[md_time[0]]}, z = {z_md_time}') #insert these in c code to find cosmic time
 """ 
 Radiation-matter equality time  = [-8.65778 -8.65772 -8.65766 ...  4.99988  4.99994  5.     ]
 Matter-dark energy equality time  = [-0.255858]
@@ -107,35 +107,39 @@ idx2 = border_idx2[-1]
 
 print(f'idx 1 = {idx1} and idx2 = {idx2}')
 
-plt.figure()
-# Patches for filling between lines
-region1 = patches.Rectangle((cosmo_x[0], 0), cosmo_x[idx1]-cosmo_x[0], 1, color='orange', alpha=0.2)
-region2 = patches.Rectangle((cosmo_x[idx1], 0), cosmo_x[idx2] - cosmo_x[idx1], 1, color='blue', alpha=0.2)
-region3 = patches.Rectangle((cosmo_x[idx2], 0), cosmo_x[-1] - cosmo_x[idx2], 1, color='magenta', alpha=0.2)
+# plt.figure()
+# # Patches for filling between lines
+# region1 = patches.Rectangle((cosmo_x[0], 0), cosmo_x[idx1]-cosmo_x[0], 1, color='orange', alpha=0.2)
+# region2 = patches.Rectangle((cosmo_x[idx1], 0), cosmo_x[idx2] - cosmo_x[idx1], 1, color='blue', alpha=0.2)
+# region3 = patches.Rectangle((cosmo_x[idx2], 0), cosmo_x[-1] - cosmo_x[idx2], 1, color='magenta', alpha=0.2)
 
-# Adding the patches to the plot
-plt.gca().add_patch(region1)
-plt.gca().add_patch(region2)
-plt.gca().add_patch(region3)
+# # Adding the patches to the plot
+# plt.gca().add_patch(region1)
+# plt.gca().add_patch(region2)
+# plt.gca().add_patch(region3)
 
 
-""" Plot of Omegas """
+# """ Plot of Omegas """
 
-plt.plot(cosmo_x, cosmo_OmegaR+cosmo_OmegaNu,  'orange', label=r"$\Omega_{R} = \Omega_{\gamma} + \Omega_{\nu}$")
-plt.plot(cosmo_x, cosmo_OmegaB+cosmo_OmegaCDM, 'blue', label=r"$\Omega_{M} = \Omega_{b} + \Omega_{CDM}$")
-plt.plot(cosmo_x, cosmo_OmegaLambda, 'purple', label="$\Omega_{\Lambda}$")
-#plt.plot(cosmo_x, 1/cosmo_Hp*cosmo_dHpdx)
+# plt.plot(cosmo_x, cosmo_OmegaR+cosmo_OmegaNu,  'orange', label=r"$\Omega_{R} = \Omega_{\gamma} + \Omega_{\nu}$")
+# plt.plot(cosmo_x, cosmo_OmegaB+cosmo_OmegaCDM, 'blue', label=r"$\Omega_{M} = \Omega_{b} + \Omega_{CDM}$")
+# plt.plot(cosmo_x, cosmo_OmegaLambda, 'purple', label="$\Omega_{\Lambda}$")
+# plt.plot(cosmo_x, (cosmo_OmegaR+cosmo_OmegaNu+cosmo_OmegaB + cosmo_OmegaCDM + cosmo_OmegaLambda), color='black', linestyle='--', label='Sum')
+# #plt.plot(cosmo_x, 1/cosmo_Hp*cosmo_dHpdx)
 
-# plt.axvline(x=cosmo_x[idx1], color='black', linestyle='--', linewidth=1)
-# plt.axvline(x=cosmo_x[idx2], color='black', linestyle='--', linewidth=1)
-plt.title("$\Omega_i(x)$")
-plt.xlabel("x")
-plt.legend()
-plt.savefig("Figs/Omegas.pdf")
+# # plt.title("$\Omega_i(x)$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+# plt.xlabel("x", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+# plt.legend()
+# plt.savefig("Figs/Omegas.pdf")
+
+
+
+""" ANALYTICAL DERIVATIVES """
 
 
 
 """ Hprime *its derivatives plots """
+
 
 plt.figure()
 ### 1/H * dHdx
@@ -148,16 +152,23 @@ plt.gca().add_patch(region1)
 plt.gca().add_patch(region2)
 plt.gca().add_patch(region3)
 
-
 plt.plot(cosmo_x, 1/cosmo_Hp*cosmo_dHpdx, 'black', label=r'$\frac{1}{\mathcal{H}(x)} \frac{d\mathcal{H}(x)}{dx}$')
-plt.plot(cosmo_x, (1/cosmo_Hp)*cosmo_ddHpddx, label=r'$\frac{1}{\mathcal{H}(x)} \frac{d^2\mathcal{H}(x)}{dx^2}$')
+plt.plot(cosmo_x, (1/cosmo_Hp)*cosmo_ddHpddx, color ='blue', label=r'$\frac{1}{\mathcal{H}(x)} \frac{d^2\mathcal{H}(x)}{dx^2}$')
 
+plt.hlines(y=-1, xmin=cosmo_x[0], xmax=cosmo_x[rm_time[0]], colors='orange', linestyles='--') # Radiation dominated Hp'/Hp
+plt.hlines(y=1, xmin=cosmo_x[0], xmax=cosmo_x[rm_time[0]], colors='orange', linestyles='--') # Radiation dominated Hp''/Hp
 
-#plt.title("$\math{H}(x)$")
+plt.hlines(y=-0.5, xmin=cosmo_x[rm_time[0]], xmax=cosmo_x[md_time[0]], colors='blue', linestyles='--') # Matter dominated Hp'/Hp
+plt.hlines(y=0.25, xmin=cosmo_x[rm_time[0]], xmax=cosmo_x[md_time[0]], colors='blue', linestyles='--') # Matter dominated Hp''/Hp
+
+plt.hlines(y=1, xmin=cosmo_x[md_time[0]], xmax=cosmo_x[-1], colors='magenta', linestyles='--') # Dark energy dominated Hp'/Hp
+plt.hlines(y=1, xmin=cosmo_x[md_time[0]], xmax=cosmo_x[-1], colors='magenta', linestyles='--') # Dark energy dominated Hp''/Hp
+
 plt.legend()
-plt.xlabel("x")
+plt.xlabel("x", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.savefig("Figs/Hp_checks.pdf")
-#plt.show()
+
+
 
 """ Plot of Hprime(x)*eta(x)/c """
 plt.figure()
@@ -173,17 +184,17 @@ plt.gca().add_patch(region3)
 
 eta_end = np.where(abs(cosmo_x)<0.001)[0][0]  # when x = 0, bc theres no point continuing eta checks passed that
 print(eta_end, 'ETA END')
-plt.plot(cosmo_x[:eta_end], cosmo_eta_of_x[:eta_end]*cosmo_Hp[:eta_end]/const.c, label=r'$\frac{\eta(x)\mathcal{H}(x)}{c}$')
+plt.plot(cosmo_x[:eta_end], cosmo_eta_of_x[:eta_end]*cosmo_Hp[:eta_end]/const.c, color ='blue', label=r'$\frac{\eta(x)\mathcal{H}(x)}{c}$')
 plt.plot(cosmo_x[:eta_end], cosmo_deta[:eta_end]*cosmo_Hp[:eta_end]/const.c, color='black', label=r'$\frac{d\eta(x)}{dx}\frac{\mathcal{H}(x)}{c}$')
 # plt.plot(cosmo_x, cosmo_eta_of_x*cosmo_Hp/const.c)
-plt.title(r'$\frac{\eta(x)\mathcal{H}(x)}{c}$')
 plt.legend()
 plt.ylim(0, 3.5)
 plt.xlim(-18, 5)
 # plt.xlim(np.log(1/1+1089), 0)
-plt.xlabel("x")
+plt.xlabel("x", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.savefig("Figs/Hp_eta_checks.pdf")
 
+plt.show()
 
 """ Plot of cosmic time and conformal time """
 
@@ -200,14 +211,14 @@ plt.gca().add_patch(region1)
 plt.gca().add_patch(region2)
 plt.gca().add_patch(region3)
 
-plt.plot(cosmo_x, cosmo_t_of_x*Gyr, label="t") 
-plt.plot(cosmo_x, cosmo_eta_of_x*Gyr/const.c, label="$\eta(x)/c$")
+plt.plot(cosmo_x, cosmo_t_of_x*Gyr, color ='blue', label="t") 
+plt.plot(cosmo_x, cosmo_eta_of_x*Gyr/const.c, color ='orange', label="$\eta(x)/c$")
 plt.axhline(y=13.8, color='black', linestyle='--', label='13.8 Gyr', alpha=0.3)
 
 plt.yscale('log')
 #plt.xlim(np.log(1/1+1089), 0)
-plt.xlabel("x")
-plt.ylabel("Gyr")
+plt.xlabel("x", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+plt.ylabel("Gyr", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.legend()
 plt.savefig("Figs/cosmic_time_and_conformal_time.pdf")
 
@@ -229,16 +240,17 @@ plt.gca().add_patch(region1)
 plt.gca().add_patch(region2)
 plt.gca().add_patch(region3)
 
-plt.plot(cosmo_x, cosmo_Hp*(1/(Mpc*100000))) #(100/(Mpc*1000)))
+plt.plot(cosmo_x, cosmo_Hp*(1/(Mpc*100000)), color ='blue',) #(100/(Mpc*1000)))
 plt.axvline(acc_x, color='black', linestyle='--', label='Start of acceleration')
 plt.yscale('log')
-#plt.xlim(-12, 0.1)
-plt.title("$\mathcal{H}(x)$")
-plt.xlabel("x")
-plt.ylabel("100 km/s / Mpc")
-plt.savefig("Figs/Hubble_factor.pdf")
 plt.legend()
-plt.show()
+#plt.xlim(-12, 0.1)
+# plt.title("$\mathcal{H}(x)$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+plt.xlabel("x", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+plt.ylabel("100 km/s / Mpc", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+plt.savefig("Figs/Hubble_factor.pdf")
+
+
 
 
 

@@ -84,7 +84,7 @@ void BackgroundCosmology::solve(){
 
   Utils::EndTiming("Eta");
 
-  // The ODE for deta/dx
+  // The ODE for dt/dx
   ODEFunction dtdx = [&](double x, const double *t, double *dtdx){
 
     dtdx[0] = 1.0/H_of_x(x);
@@ -106,7 +106,7 @@ void BackgroundCosmology::solve(){
   }
 
   t_of_x_spline.create(x_array, t, "t_of_x");
-  std::cout << "cosmic time = " << solution_time.back()[0] / (60.*60.*24*365*1e9) << " Gyr";
+  // std::cout << "cosmic time = " << solution_time.back()[0] / (60.*60.*24*365*1e9) << " Gyr";
 
   
 
@@ -311,6 +311,7 @@ double BackgroundCosmology::get_TCMB(double x) const{
   return TCMB * exp(-x); 
 }
 
+
 //====================================================
 // Print out info about the class
 //====================================================
@@ -357,6 +358,8 @@ void BackgroundCosmology::output(const std::string filename) const{
     fp << t_of_x(x)        << " "; 
     fp << get_luminosity_distance_of_x(x) << " ";
     fp << deta_of_x_dx(x) << " ";
+
+    fp << get_TCMB(x) << " ";
     fp <<"\n";
   };
   std::for_each(x_array.begin(), x_array.end(), print_data);
@@ -371,6 +374,9 @@ void BackgroundCosmology::output(const std::string filename) const{
   std::cout << "t_Saha " << t_of_x(-7.14033) / (60.*60.*24*365*1e6) << " Myr" << "\n";
   //  -6.98822
   std::cout << "t_re " << t_of_x(-6.98822) / (60.*60.*24*365*1e6) << " Myr" << "\n";
+
+  std::cout << "cosmic time = " << t_of_x(0) / (60.*60.*24*365*1e9) << " Gyr" << '\n';
+  std::cout << "conformal time = " << eta_of_x(0)/ (Constants.c*60.*60.*24*365*1e9) << " Gyr" << "\n";
 
   std::cout << "\n";
 }

@@ -17,10 +17,15 @@ int main(int argc, char **argv){
   double OmegaB      = 0.05;
   double OmegaCDM    = 0.267;
   double OmegaK      = 0.0;
-  double Neff        = 0.0; //3.046; //***
+  double Neff        =  0.0;  // 3.046;
   double TCMB        = 2.7255;
 
-  // Best fit background params
+//=========================================================================
+// The comments labeled // MCMC are to be uncommented when running  the MCMC
+// method. Comment back out when you are done.
+//=========================================================================
+
+  // Best fit background params // MCMC
   //  h        OmegaM      OmegaK    
   // 0.701711   0.255027   0.0789514
   // double h           = 0.701711;
@@ -49,18 +54,18 @@ int main(int argc, char **argv){
   cosmo.info();
   
   
-  // Output background evolution quantities
-  // cosmo.output("best_params_cosmology.txt");
+  // Output background evolution quantities 
+  // cosmo.output("best_params_cosmology.txt"); // MCMC
 
   // Output background evolution quantities
   cosmo.output("cosmology.txt");
 
-  // Do the supernova fits. Uncomment when you are ready to run this
+  // Do the supernova fits. Uncomment when you are ready to run this 
   // Make sure you read the comments on the top of src/SupernovaFitting.h
-  // mcmc_fit_to_supernova_data("data/supernovadata.txt", "results_supernovafitting.txt");
+  // mcmc_fit_to_supernova_data("data/supernovadata.txt", "results_supernovafitting.txt"); // MCMC
 
   
-return 0.0;
+
   //=========================================================================
   // Module II
   //=========================================================================
@@ -95,19 +100,20 @@ return 0.0;
   
   
   
-  // Power spectrum parameters
-  // double A_s = 2.1e-9;
-  // double n_s = 0.965;
-  // double kpivot_mpc = 0.05;
+
+
   //=========================================================================
   // Module IV
   //=========================================================================
 
   PowerSpectrum power(&cosmo, &rec, &pert, A_s, n_s, kpivot_mpc);
   power.solve();
-  power.output("cells.txt");
-  
-  // Remove when module is completed
-  return 0.0;
+  power.output_cells("cells.txt");
+  // power.output_cells("cells_SW.txt");
+  // power.output_cells("cells_ISW.txt");
+  // power.output_cells("cells_Doppler.txt");
+  // power.output_cells("cells_Polarization.txt");
+  power.output_transfer("matter_transfer.txt");
+
   Utils::EndTiming("Everything");
 }
