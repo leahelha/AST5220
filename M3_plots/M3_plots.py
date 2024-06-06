@@ -44,6 +44,53 @@ ddgtilde = data_rec[:, 8]
 
 
 
+#FROM M1
+""" Calculating the times """
+
+
+rm_time = np.where( (abs( (cosmo_OmegaR+cosmo_OmegaNu) - (cosmo_OmegaB+cosmo_OmegaCDM)) < 0.001))[0][0]
+md_time = np.argmin(abs((cosmo_OmegaB+cosmo_OmegaCDM) - (cosmo_OmegaLambda) ))
+
+
+z_rm_time = 1/np.exp(cosmo_x[rm_time]) - 1
+z_md_time = 1/np.exp(cosmo_x[md_time]) - 1
+
+#From M3
+x_re = -6.98822
+rec_idx = np.argmin(abs(cosmo_x+6.98822))
+
+print(f'Recombination occurs at {cosmo_x[rec_idx]}')
+print(f'Radiation-matter equality time  x = {cosmo_x[rm_time]}, z = {z_rm_time}')
+print(f'Matter-dark energy equality time  x = {cosmo_x[md_time]}, z = {z_md_time}') #insert these in c code to find cosmic time
+""" 
+Radiation-matter equality time  = [-8.65778 -8.65772 -8.65766 ...  4.99988  4.99994  5.     ]
+Matter-dark energy equality time  = [-0.255858]
+
+c code:
+Time of radiation-matter equality 0.0232026 Myr
+Time of matter-dark energy equality 10379.9 Myr
+
+rm_time: x = -8.65778, z = 5753.744937399699, t = 0.0232026 Myr
+md_time: x = -0.255858, z = 0.2915693120751712, t = 10379.9 Myr 
+"""
+
+
+
+
+# ROUGHLY ILLUSTRATING THE DIFFERENT REGIMES IN THE PLOT
+border_idx1 = rm_time#np.where((np.abs((cosmo_OmegaR+cosmo_OmegaNu)-(cosmo_OmegaB+cosmo_OmegaCDM)))<tol)[0] #Radiation-matter domination border
+border_idx2 = md_time#np.where((np.abs((cosmo_OmegaB+cosmo_OmegaCDM)-cosmo_OmegaLambda))<tol)[0]  #Matter-dark energy domination border
+
+
+idx1 = border_idx1
+idx2 = border_idx2
+idx3 = np.argmin(abs(cosmo_x-0.3))
+
+print(f'time rm at x {cosmo_x[rm_time]} for idx 1 = {idx1} \n time md at x = {cosmo_x[md_time]} and idx2 = {idx2}')
+
+
+
+
 
 """                                       PERTURBATIONS                                         """
 
@@ -137,106 +184,295 @@ for k in k_list:
 
 
 
-
+clr='red'
+linewdth = 1
+alph = 0.5
+style='-'
+lbl = '$x_{rec}$'
 plt.figure()
+
+h = np.max(abs(delta_cdm[2]))
+
+# Patches for filling between lines
+region1 = patches.Rectangle((cosmo_x[0], 0), cosmo_x[idx1]-cosmo_x[0], h, color='orange', alpha=0.1)
+region2 = patches.Rectangle((cosmo_x[idx1], 0), cosmo_x[idx2] - cosmo_x[idx1], h, color='blue', alpha=0.1)
+region3 = patches.Rectangle((cosmo_x[idx2], 0), cosmo_x[idx3] - cosmo_x[idx2], h, color='magenta', alpha=0.1)
+
+# Adding the patches to the plot
+plt.gca().add_patch(region1)
+plt.gca().add_patch(region2)
+plt.gca().add_patch(region3)
+
+plt.axvline(cosmo_x[rec_idx], linewidth=linewdth, color=clr, alpha=alph, linestyle=style)#, label=lbl)
+plt.text(0.6, 0.95, f'{lbl}', transform=plt.gca().transAxes, 
+         verticalalignment='bottom', bbox=dict(boxstyle="square,pad=0.3", facecolor='none', alpha=0.5, edgecolor='none') )
+
+
 k_color = ['b', 'orange', 'green']
 i=0
 for k in range(len(k_list)):
     
-    plt.plot(x[k], abs(delta_cdm[k]), color = f'{k_color[i]}', linestyle ='-',label=f"k = {k_values[k]}")
+    plt.plot(x[k], abs(delta_cdm[k]), color = f'{k_color[i]}', linestyle ='-', alpha=0.8, label=f"k = {k_values[k]}")
     plt.plot(x[k], abs(delta_b[k]), color = f'{k_color[i]}', linestyle='--')
-    plt.plot(x[k], abs(4*Theta_0[k]), f'{k_color[i]}', linestyle ='-.', alpha=0.3)
+    plt.plot(x[k], abs(4*Theta_0[k]), f'{k_color[i]}', linestyle ='-.', alpha=0.2)
     i += 1
 plt.yscale('log')
+
+
 plt.legend()
-# plt.title('$\delta_{cdm}$, $\delta_b$, and $\delta_{\gamma}$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.xlabel("$x$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.savefig('./Figs/M3/densities_pert.pdf')
+plt.title('$\delta_{cdm}$, $\delta_b$, and $\delta_{\gamma}$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 
-
+###############################################################################################################################
 plt.figure()
+h = np.max(abs(v_cdm[2]))
+# Patches for filling between lines
+region1 = patches.Rectangle((cosmo_x[0], 0), cosmo_x[idx1]-cosmo_x[0], h, color='orange', alpha=0.1)
+region2 = patches.Rectangle((cosmo_x[idx1], 0), cosmo_x[idx2] - cosmo_x[idx1], h, color='blue', alpha=0.1)
+region3 = patches.Rectangle((cosmo_x[idx2], 0), cosmo_x[idx3] - cosmo_x[idx2], h, color='magenta', alpha=0.1)
+
+# Adding the patches to the plot
+plt.gca().add_patch(region1)
+plt.gca().add_patch(region2)
+plt.gca().add_patch(region3)
+
+plt.axvline(cosmo_x[rec_idx], linewidth=linewdth, color=clr, alpha=alph, linestyle=style)#, label=lbl)
+plt.text(0.6, 0.95, f'{lbl}', transform=plt.gca().transAxes, 
+         verticalalignment='bottom', bbox=dict(boxstyle="square,pad=0.3", facecolor='none', alpha=0.5, edgecolor='none') )
+
 i = 0
 
 for k in range(len(k_list)):
-    plt.plot(x[k], abs(-3*Theta_1[k]), color = f'{k_color[i]}', linestyle='-.', alpha=0.3)
-    plt.plot(x[k], abs(v_cdm[k]), color = f'{k_color[i]}', linestyle ='-', label=f"k = {k_values[k]}")
+    plt.plot(x[k], abs(-3*Theta_1[k]), color = f'{k_color[i]}', linestyle='-.', alpha=0.2)
+    plt.plot(x[k], abs(v_cdm[k]), color = f'{k_color[i]}', linestyle ='-', alpha=0.8, label=f"k = {k_values[k]}")
     plt.plot(x[k], abs(v_b[k]), color = f'{k_color[i]}', linestyle ='--' ) 
     
     i +=1
 plt.yscale('log')
+
 plt.legend()
-# plt.title('$v_{cdm}$, $v_{b}$ and $v_{\gamma}$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+
 plt.xlabel("$x$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.savefig('./Figs/M3/velocities_pert.pdf')
+plt.title('$v_{cdm}$, $v_{b}$ and $v_{\gamma}$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 
 
+
+###############################################################################################################################
 plt.figure()
+
+b = np.min(-3*Theta_1[2])
+h = np.max( (-3*Theta_1[2]) ) + abs(b)
+
+
+# Patches for filling between lines
+region1 = patches.Rectangle((cosmo_x[0], b), cosmo_x[idx1]-cosmo_x[0], h, color='orange', alpha=0.1)
+region2 = patches.Rectangle((cosmo_x[idx1], b), cosmo_x[idx2] - cosmo_x[idx1], h, color='blue', alpha=0.1)
+region3 = patches.Rectangle((cosmo_x[idx2], b), cosmo_x[idx3] - cosmo_x[idx2], h, color='magenta', alpha=0.1)
+
+# Adding the patches to the plot
+plt.gca().add_patch(region1)
+plt.gca().add_patch(region2)
+plt.gca().add_patch(region3)
+
+plt.axvline(cosmo_x[rec_idx], linewidth=linewdth, color=clr, alpha=alph, linestyle=style)#, label=lbl)
+plt.text(0.6, 0.95, f'{lbl}', transform=plt.gca().transAxes, 
+         verticalalignment='bottom', bbox=dict(boxstyle="square,pad=0.3", facecolor='none', alpha=0.5, edgecolor='none') )
+
+
 for k in range(len(k_list)):
     plt.plot(x[k], (-3*Theta_1[k]), label=f"k = {k_values[k]}", alpha = 0.8)    
     i +=1
 # plt.yscale('log')
 plt.legend()
-# plt.title('$v_{\gamma} = -3\Theta_1$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.xlabel("$x$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.savefig('./Figs/M3/velocity_gamma.pdf')
+plt.title('$v_{\gamma} = -3\Theta_1$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 
+
+
+
+###############################################################################################################################
 plt.figure()
+b = np.min(4*Theta_0[2])
+h = np.max(abs(4*Theta_0[1])) +abs(b)
+
+
+# Patches for filling between lines
+region1 = patches.Rectangle((cosmo_x[0], b), cosmo_x[idx1]-cosmo_x[0], h, color='orange', alpha=0.1)
+region2 = patches.Rectangle((cosmo_x[idx1], b), cosmo_x[idx2] - cosmo_x[idx1], h, color='blue', alpha=0.1)
+region3 = patches.Rectangle((cosmo_x[idx2], b), cosmo_x[idx3] - cosmo_x[idx2], h, color='magenta', alpha=0.1)
+
+# Adding the patches to the plot
+plt.gca().add_patch(region1)
+plt.gca().add_patch(region2)
+plt.gca().add_patch(region3)
+
+plt.axvline(cosmo_x[rec_idx], linewidth=linewdth, color=clr, alpha=alph, linestyle=style)#, label=lbl)
+plt.text(0.6, 0.95, f'{lbl}', transform=plt.gca().transAxes, 
+         verticalalignment='bottom', bbox=dict(boxstyle="square,pad=0.3", facecolor='none', alpha=0.5, edgecolor='none') )
+
 for k in range(len(k_list)):
     plt.plot(x[k], (4*Theta_0[k]), label=f"k = {k_values[k]}")    
     i +=1
 # plt.yscale('log')
 plt.legend()
-# plt.title('$\delta_{\gamma} = 4\Theta_0$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.xlabel("$x$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.savefig('./Figs/M3/delta_gamma.pdf')
+plt.title('$\delta_{\gamma} = 4\Theta_0$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 
 
-
+###############################################################################################################################
 plt.figure()
+b = np.min(Theta_0[2])
+h = np.max(abs(Theta_0[1])) + abs(b)
+
+# Patches for filling between lines
+region1 = patches.Rectangle((cosmo_x[0], b), cosmo_x[idx1]-cosmo_x[0], h, color='orange', alpha=0.1)
+region2 = patches.Rectangle((cosmo_x[idx1], b), cosmo_x[idx2] - cosmo_x[idx1], h, color='blue', alpha=0.1)
+region3 = patches.Rectangle((cosmo_x[idx2], b), cosmo_x[idx3] - cosmo_x[idx2], h, color='magenta', alpha=0.1)
+
+# Adding the patches to the plot
+plt.gca().add_patch(region1)
+plt.gca().add_patch(region2)
+plt.gca().add_patch(region3)
+
+plt.axvline(cosmo_x[rec_idx], linewidth=linewdth, color=clr, alpha=alph, linestyle=style)#, label=lbl)
+plt.text(0.6, 0.95, f'{lbl}', transform=plt.gca().transAxes, 
+         verticalalignment='bottom', bbox=dict(boxstyle="square,pad=0.3", facecolor='none', alpha=0.5, edgecolor='none') )
+
+
 for k in range(len(k_list)):
     plt.plot(x[k], Theta_0[k], label=f"k = {k_values[k]}")
 plt.legend()
-# plt.title('$\Theta_0$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.xlabel("$x$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.savefig('./Figs/M3/Theta_0.pdf')
+plt.title('$\Theta_0$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 
-
+###############################################################################################################################
 plt.figure()
+b = np.min(Theta_1[2])
+h = np.max(Theta_1[2]) + abs(b)
+
+
+# Patches for filling between lines
+region1 = patches.Rectangle((cosmo_x[0], b), cosmo_x[idx1]-cosmo_x[0], h, color='orange', alpha=0.1)
+region2 = patches.Rectangle((cosmo_x[idx1], b), cosmo_x[idx2] - cosmo_x[idx1], h, color='blue', alpha=0.1)
+region3 = patches.Rectangle((cosmo_x[idx2], b), cosmo_x[idx3] - cosmo_x[idx2], h, color='magenta', alpha=0.1)
+
+# Adding the patches to the plot
+plt.gca().add_patch(region1)
+plt.gca().add_patch(region2)
+plt.gca().add_patch(region3)
+
+plt.axvline(cosmo_x[rec_idx], linewidth=linewdth, color=clr, alpha=alph, linestyle=style)#, label=lbl)
+plt.text(0.6, 0.95, f'{lbl}', transform=plt.gca().transAxes, 
+         verticalalignment='bottom', bbox=dict(boxstyle="square,pad=0.3", facecolor='none', alpha=0.5, edgecolor='none') )
+
+
 for k in range(len(k_list)):
     plt.plot(x[k], Theta_1[k], label=f"k = {k_values[k]}")
 plt.legend()
-# plt.title('$\Theta_1$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.xlabel("$x$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.savefig('./Figs/M3/Theta_1.pdf')
+plt.title('$\Theta_1$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 
 
+
+###############################################################################################################################
 plt.figure()
+
+b = np.min((Theta_2[1]))
+h = abs(b) + np.max(abs(Theta_2[1]))
+
+
+# Patches for filling between lines
+region1 = patches.Rectangle((cosmo_x[0], b), cosmo_x[idx1]-cosmo_x[0], h, color='orange', alpha=0.1)
+region2 = patches.Rectangle((cosmo_x[idx1], b), cosmo_x[idx2] - cosmo_x[idx1], h, color='blue', alpha=0.1)
+region3 = patches.Rectangle((cosmo_x[idx2], b), cosmo_x[idx3] - cosmo_x[idx2], h, color='magenta', alpha=0.1)
+
+# Adding the patches to the plot
+plt.gca().add_patch(region1)
+plt.gca().add_patch(region2)
+plt.gca().add_patch(region3)
+
+plt.axvline(cosmo_x[rec_idx], linewidth=linewdth, color=clr, alpha=alph, linestyle=style)#, label=lbl)
+plt.text(0.6, 0.95, f'{lbl}', transform=plt.gca().transAxes, 
+         verticalalignment='bottom', bbox=dict(boxstyle="square,pad=0.3", facecolor='none', alpha=0.5, edgecolor='none') )
+
+
+
 for k in range(len(k_list)):
     plt.plot(x[k], Theta_2[k], label=f"k = {k_values[k]}")
 plt.legend()
-# plt.title('$\Theta_2$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.xlabel("$x$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.savefig('./Figs/M3/Theta_2.pdf')
+plt.title('$\Theta_2$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 
-
+###############################################################################################################################
 plt.figure()
+
+b = np.min(Psi[1]+Phi[1])
+h = np.max(Psi[0]+Phi[0]) + abs(b)
+
+
+# Patches for filling between lines
+region1 = patches.Rectangle((cosmo_x[0], b), cosmo_x[idx1]-cosmo_x[0], h, color='orange', alpha=0.1)
+region2 = patches.Rectangle((cosmo_x[idx1], b), cosmo_x[idx2] - cosmo_x[idx1], h, color='blue', alpha=0.1)
+region3 = patches.Rectangle((cosmo_x[idx2], b), cosmo_x[idx3] - cosmo_x[idx2], h, color='magenta', alpha=0.1)
+
+# Adding the patches to the plot
+plt.gca().add_patch(region1)
+plt.gca().add_patch(region2)
+plt.gca().add_patch(region3)
+
+plt.axvline(cosmo_x[rec_idx], linewidth=linewdth, color=clr, alpha=alph, linestyle=style)#, label=lbl)
+plt.text(0.6, 0.95, f'{lbl}', transform=plt.gca().transAxes, 
+         verticalalignment='bottom', bbox=dict(boxstyle="square,pad=0.3", facecolor='none', alpha=0.5, edgecolor='none') )
+
+
+
 for k in range(len(k_list)):
     plt.plot(x[k], Psi[k]+Phi[k], label=f"k = {k_values[k]}")
 plt.legend()
-# plt.title('$\Psi + \Phi$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+
 plt.xlabel("$x$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.savefig('./Figs/M3/psi_phi_sum.pdf')
+plt.title('$\Psi + \Phi$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 
-
+###############################################################################################################################
 plt.figure()
+
+
+h = np.max((Phi[2]))
+b = np.min(Phi[2])
+
+# Patches for filling between lines
+region1 = patches.Rectangle((cosmo_x[0], b), cosmo_x[idx1]-cosmo_x[0], h, color='orange', alpha=0.1)
+region2 = patches.Rectangle((cosmo_x[idx1], b), cosmo_x[idx2] - cosmo_x[idx1], h, color='blue', alpha=0.1)
+region3 = patches.Rectangle((cosmo_x[idx2], b), cosmo_x[idx3] - cosmo_x[idx2], h, color='magenta', alpha=0.1)
+
+# Adding the patches to the plot
+plt.gca().add_patch(region1)
+plt.gca().add_patch(region2)
+plt.gca().add_patch(region3)
+
+plt.axvline(cosmo_x[rec_idx], linewidth=linewdth, color=clr, alpha=alph, linestyle=style)#, label=lbl)
+plt.text(0.6, 0.95, f'{lbl}', transform=plt.gca().transAxes, 
+         verticalalignment='bottom', bbox=dict(boxstyle="square,pad=0.3", facecolor='none', alpha=0.5, edgecolor='none') )
+
+
+
 for k in range(len(k_list)):
     plt.plot(x[k], Phi[k], label=f"k = {k_values[k]}")
 plt.legend()
-# plt.title('$\Phi$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+
 plt.xlabel("$x$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.savefig('./Figs/M3/Phi.pdf')
+plt.title('$\Phi$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 
-
+plt.show()
 # plt.figure()
 # for k in range(len(k_list)):
 #     plt.plot(x[k], Psi[k], label=f"k = {k_values[k]}")
