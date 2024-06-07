@@ -56,7 +56,7 @@ class PowerSpectrum {
     //=====================================================================
     // [2] Do the line of sight integration and spline the result
     //=====================================================================
-    double x_start_LOS = -8.3; // Time of recombination start in my model ***
+    double x_start_LOS = -8.3; // 
     double x_end_LOS = 0.0;
     // Do LOS integration for all ells and all k's in the given k_array
     // and for all the source functions (temperature, polarization, ...)

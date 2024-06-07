@@ -83,7 +83,7 @@ void PowerSpectrum::generate_bessel_function_splines(){
   double z_start = 0;
   double z_end = k_max*eta0;
   double dz = 0.05;
-  int n_z = abs(z_end-z_start)/dz; // *** Check
+  int n_z = abs(z_end-z_start)/dz; 
   
   
   Vector z_array = Utils::linspace(z_start, z_end, n_z);

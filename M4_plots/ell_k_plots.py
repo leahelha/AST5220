@@ -42,17 +42,19 @@ lower_error = planck_data[:,3]
 
 error = [lower_error, upper_error]
 
+# Angular powerspectrum
 plt.figure()
 # plt.plot(l, Cell*(l*(l+1))/(2*np.pi)*(10**6*TempCMB0)**2 )
 lnwidth = 0.5
 plt.plot(l, Cell, color='blue')
-plt.plot(l, Cell_SW, linewidth=lnwidth, label='SW')
-plt.plot(l, Cell_ISW, linewidth=lnwidth, label='ISW')
-plt.plot(l, Cell_Doppler, linewidth=lnwidth, label='Doppler')
-plt.plot(l, Cell_Polarization, linewidth=lnwidth, label='Polarization')
+plt.plot(l, Cell_SW, linestyle='-', linewidth=lnwidth, label='SW')
+plt.plot(l, Cell_ISW, linestyle='-',linewidth=lnwidth, label='ISW')
+plt.plot(l, Cell_Doppler,linestyle='-', linewidth=lnwidth, label='Doppler')
+plt.plot(l, Cell_Polarization, linestyle='-',linewidth=lnwidth, label='Polarization')
 plt.errorbar(ell_planck, C_ell_planck, elinewidth=0.5, yerr=error, fmt='o', color='red', ecolor='red', capsize=1, ms=1, label="Planck data")
 # plt.xlim(2, l[-1])
 plt.xscale("log")
+plt.ylabel(r"$C_{\ell}\cdot\frac{\ell\cdot(\ell + 1)}{2\pi} 10^6 T_{CMB}^2$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.xlabel("$\ell$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.legend()
 plt.savefig('./Figs/M4/C_ell.pdf')
@@ -89,6 +91,8 @@ plt.savefig('./Figs/M4/C_ell.pdf')
 """
 
 
+# Matter-power spectrum
+
 data_2 = np.loadtxt("./matter_transfer.txt")
  
 k = data_2[:, 0]
@@ -113,20 +117,22 @@ k_eq = cosmo_Hp_of_x[np.where(cosmo_x==x_eq)]/c.value
 plt.figure()
 plt.plot(k/h /Mpc, pofk*(Mpc**3)*(h**3))
 plt.axvline(k_eq/h/Mpc, color='black', linestyle='--', label=r'$k_{eq}$')
-plt.xlabel('k', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
-plt.ylabel('P(k)(Mpc/h)^3', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+plt.xlabel('k [1/h]', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
+plt.ylabel(r'$P(k)(Mpc/h)^3$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.xscale('log')
 plt.yscale('log')
 plt.legend()
 plt.savefig('./Figs/M4/Pk.pdf')
 
 
+# # Theta_l
+
 plt.figure()
 
-ells = [ 2, 7, 60, 100, 225, 350 ]
+# ells = [ 2, 7, 60, 100, 225, 350 ]
 
 
-linewidth = 0.5
+linewidth = 1
 # plt.plot(k*eta_0, theta_ell_2, linewidth=linewidth, label = r'$\ell$ = 2')
 plt.plot(k*eta_0, theta_ell_7, linewidth=linewidth, label = r'$\ell$ = 7')
 plt.plot(k*eta_0, theta_ell_60, linewidth=linewidth, label = r'$\ell$ = 60')
@@ -134,31 +140,61 @@ plt.plot(k*eta_0, theta_ell_100,linewidth=linewidth, label = r'$\ell$ = 100')
 
 plt.plot(k*eta_0, theta_ell_500, linewidth=linewidth, label = r'$\ell$ = 500')
 plt.plot(k*eta_0, theta_ell_1000, linewidth=linewidth, label = r'$\ell$ = 1000')
-plt.plot(k*eta_0, theta_ell_2000, linewidth=linewidth, label = r'$\ell$ = 2000')
-
+# plt.plot(k*eta_0, theta_ell_2000, linewidth=linewidth, label = r'$\ell$ = 2000')
 plt.xlim(0, 1500)
-plt.ylim(-0.005, 0.025)
+plt.ylim(-0.005, 0.02)
+plt.ylabel(r'$\Theta_{\ell}(k)$', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.xlabel("$k\eta_0$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.legend()
 plt.savefig('./Figs/M4/Theta_ell_k.pdf')
 
+
+
+# the C_l integrand, abs(theta_ell)**2/k
 plt.figure()
 
+"""
+Hvis du bruker log-y så er det lurt å sette en minimums verdi for y aksen så den ikke løper helt ned til 10^-300 og du ikke ser noe i plottet.
+For x så er det en mulighet å plotte k*eta0 siden Theta_ell(k) ~ const * j_ell(k eta0) i den enkleste approximajonen for SW leddet og vi vet 
+at j_ell(x) peaker rundt ell ~ x og starter å svinge etter det så er kanskje lettere å se om alt se om ting ser riktig ut med denne x aksen.
+
+"""
 ells = [ 2, 7, 60, 100, 225, 350 ]
 
+scale_2 = 2*(2+1)
+scale_7 =  7*(7+1)
+scale_60 = 60*(60+1)
+scale_100 = 100*(100+1)
+scale_500 = 500*(500+1)
+scale_1000 = 1000*(1000+1)
+scale_2000 =  2000*(2000+1)
+
+print(np.where(abs(theta_ell_500)**2/k == np.max(abs(theta_ell_500)**2/k))[0][0])
 
 linewidth = 0.5
 # plt.plot(k*eta_0, abs(theta_ell_2)**2/k, linewidth=linewidth, label = r'$\ell$ = 2')
-plt.plot(k*eta_0, abs(theta_ell_7)**2/k, linewidth=linewidth, label = r'$\ell$ = 7')
-plt.plot(k*eta_0, abs(theta_ell_60)**2/k, linewidth=linewidth, label = r'$\ell$ = 60')
-plt.plot(k*eta_0, abs(theta_ell_100)**2/k,linewidth=linewidth, label = r'$\ell$ = 100')
+plt.plot(k[1:]*eta_0, scale_7*(abs(theta_ell_7[1:])**2)/k[1:], linewidth=linewidth, color='blue', label = r'$\ell$ = 7')
+plt.axvline(k[ np.where((abs(theta_ell_7)**2)/k == np.max((abs(theta_ell_7)**2)/k))[0][0] ]*eta_0, linestyle='--', linewidth = 1, color='blue', label='')
 
-plt.plot(k*eta_0, abs(theta_ell_500)**2/k, linewidth=linewidth, label = r'$\ell$ = 500')
-plt.plot(k*eta_0, abs(theta_ell_1000)**2/k, linewidth=linewidth, label = r'$\ell$ = 1000')
-plt.plot(k*eta_0, abs(theta_ell_2000)**2/k, linewidth=linewidth, label = r'$\ell$ = 2000')
+plt.plot(k[1:]*eta_0, scale_60*(abs(theta_ell_60[1:])**2)/k[1:], linewidth=linewidth, label = r'$\ell$ = 60', color='orange',)
+plt.axvline(k[ np.where((abs(theta_ell_60)**2)/k == np.max((abs(theta_ell_60)**2)/k))[0][0] ]*eta_0, linestyle='--', linewidth = 1, color='orange', label='')
 
-plt.xlim(0, 1500)
-# plt.ylim(-0.005, 0.025)
+plt.plot(k[1:]*eta_0, scale_100* (abs(theta_ell_100[1:])**2)/k[1:],linewidth=linewidth, label = r'$\ell$ = 100', color='gold')
+plt.axvline(k[    np.where((abs(theta_ell_100)**2)/k == np.max((abs(theta_ell_100)**2)/k))[0][0]    ]*eta_0, linestyle='--', linewidth = 1, color='gold', label='')
+
+plt.plot(k[1:]*eta_0, scale_500*(abs(theta_ell_500[1:])**2)/k[1:], linewidth=linewidth, label = r'$\ell$ = 500', color='olivedrab',)
+plt.axvline(k[    np.where((abs(theta_ell_500)**2)/k == np.max((abs(theta_ell_500)**2)/k))[0][0]    ]*eta_0, linestyle='--', linewidth = 1, color='olivedrab', label='')
+
+plt.plot(k[1:]*eta_0, scale_1000*(abs(theta_ell_1000[1:])**2)/k[1:], linewidth=linewidth, label = r'$\ell$ = 1000', color='magenta',)
+plt.axvline(k[ np.where((abs(theta_ell_1000)**2)/k == np.max((abs(theta_ell_1000)**2)/k))[0][0]]*eta_0, linestyle='--', linewidth = 1, color='magenta', label='')
+
+# plt.plot(k[1:]*eta_0, scale_2000*(abs(theta_ell_2000[1:])**2)/k[1:], linewidth=linewidth, label = r'$\ell$ = 2000', color='cyan')
+# plt.axvline(k[ np.where((abs(theta_ell_2000)**2)/k == np.max((abs(theta_ell_2000)**2)/k))[0][0]]*eta_0, linestyle='--', linewidth = 1, color='cyan', label='')
+
+plt.ylim(0, 1.5e24)
+plt.xlim(-0.01,1500)
+# plt.yscale('log')
+plt.ylabel(r'$\ell(\ell + 1)|\Theta_{\ell}(k)|^2$/k', fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.xlabel("$k\eta_0$", fontdict={'fontsize': 14, 'fontname': 'Times New Roman'})
 plt.legend()
 plt.savefig('./Figs/M4/Integrand.pdf')
